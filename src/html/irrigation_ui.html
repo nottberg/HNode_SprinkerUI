@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Irrigation Control</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
+    <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+    <script type='text/javascript' src='http://cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.min.js'></script>
+    <link rel='stylesheet' type='text/css' href='http://cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.css' />
+    <link rel='stylesheet' type='text/css' href='http://cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.print.css' />
+    <link rel="stylesheet" type="text/css" href="http://cdn.jtsage.com/datebox/latest/jqm-datebox.min.css">
+    <script type="text/javascript" src="http://cdn.jtsage.com/datebox/latest/jqm-datebox.core.min.js"></script>
+    <script type="text/javascript" src="http://cdn.jtsage.com/datebox/latest/jqm-datebox.mode.calbox.min.js"></script>
+    <script type="text/javascript" src="http://cdn.jtsage.com/datebox/latest/jqm-datebox.mode.datebox.min.js"></script>
+    <script type="text/javascript" src="http://cdn.jtsage.com/datebox/i18n/jquery.mobile.datebox.i18n.en_US.utf8.js"></script>
+    <script type='text/javascript' src='hnode_ui.js'></script>
+    <style>
+        #wrapper {
+            position:relative; 
+            border:3px solid green;
+            margin:0 auto
+        }
+        svg {
+            position:absolute; 
+            background:white
+        }
+
+    </style>
+</head>
+<body>
+
+    <div data-role="page" id="irrigationui">
+ 
+        <div data-role="header">
+            <h1>Irrigation Control</h1>
+            <a href="/index.html"  data-ajax="false" data-icon="home" data-iconpos="notext" data-direction="reverse">Home</a>
+            <a href="#settings" data-icon="gear" data-iconpos="notext" data-direction="reverse">Settings</a>
+        </div><!-- /header -->
+ 
+        <div data-role="content">
+            <div class="ui-grid-a my-breakpoint" id="zone-content-grid">
+	            <div class="ui-block-a" id="zone-map-block">
+                    <div class="svg-container" id="zone-map-svg"></div>
+                </div>
+	            <div class="ui-block-b">
+                    <form>
+                        <fieldset id="zone-radio-group" data-role="controlgroup">
+                            <legend>Zones:</legend>
+                        </fieldset>
+                    </form>
+                </div><!-- /grid-b -->
+            </div><!-- /zone-grid -->
+        </div><!-- /content -->
+ 
+        <div data-role="footer">
+            <h4>Irrigation Control</h4>
+        </div><!-- /footer -->
+ 
+        <div data-role="panel" data-position="right" data-display="overlay" id="settings" data-theme="a">
+            <ul data-role="listview">
+                <li data-icon="delete"><a href="#" data-rel="close">Close menu</a></li>
+                <li><a href="#irrigationui">Irrigation Overview</a></li>
+                <li><a href="#valveui">Manual Zone Control</a></li>
+                <li><a href="#schedule_rules">Irrigation Schedule</a></li>
+            </ul>
+        </div>
+
+    </div><!-- /page -->
+
+    <div data-role="page" id="valveui">
+ 
+        <div data-role="header">
+            <h1>Valve Override</h1>
+            <a href="/index.html"  data-ajax="false" data-icon="home" data-iconpos="notext" data-direction="reverse">Home</a>
+            <a href="#settings" data-rel="popup" data-icon="gear" data-iconpos="notext" data-direction="reverse">Settings</a>
+        </div><!-- /header -->
+ 
+        <div data-role="content">
+            <form id="switchForm" >
+                <ul id="switchList" data-role="listview" data-inset="true">
+                    <li data-role="fieldcontain">
+                       <label for="sw1">sw1:</label>
+                       <select name="sw1" id="sw1" data-role="slider">
+                           <option value="off">Off</option>
+                           <option value="on">On</option>
+                       </select>
+                    </li>
+                </ul>
+            </form>
+        </div><!-- /content -->
+ 
+        <div data-role="footer">
+            <h4>Valve Override</h4>
+        </div><!-- /footer -->
+ 
+        <div data-role="panel" data-position="right" data-display="overlay" id="settings" data-theme="a">
+            <ul data-role="listview">
+                <li data-icon="delete"><a href="#" data-rel="close">Close menu</a></li>
+                <li><a href="#irrigationui">Irrigation Overview</a></li>
+                <li><a href="#valveui">Manual Zone Control</a></li>
+                <li><a href="#schedule_rules">Irrigation Schedule</a></li>
+            </ul>
+        </div>
+
+    </div><!-- /page -->
+
+
+    <div data-role="page" id="schedule_rules">
+ 
+        <div data-role="header">
+            <h1>Irrigation Control</h1>
+            <a href="/index.html" data-ajax="false" data-icon="home" data-iconpos="notext" data-direction="reverse">Home</a>
+            <a href="#settings" data-rel="popup" data-icon="gear" data-iconpos="notext" data-direction="reverse">Settings</a>
+        </div><!-- /header -->
+ 
+        <div data-role="content">
+            <div id="srContent">
+            </div>
+
+            <ul id="srListview" data-role="listview" data-split-icon="bars" data-split-theme="a" data-inset="true">
+                <li data-icon="plus" data-theme="b" ><a href="#"><h2>Schedule Rules</h2></a><a href="#popupSRAdd" data-rel="popup" data-theme="b">New Schedule Rule</a></li>
+            </ul>
+
+            <div id="zgContent">
+            </div>
+
+            <ul id="zgListview" data-role="listview" data-split-icon="bars" data-plit-theme="a" data-inset="true">
+                <li data-icon="plus" data-theme="b" ><a href="#"><h2>Zone Groups</h2></a><a href="#popupZGAdd" data-rel="popup" data-theme="b">New Zone Group</a></li>
+            </ul>
+
+            <div id="tgContent">
+            </div>
+
+            <ul id="tgListview" data-role="listview" data-split-icon="bars" data-plit-theme="a" data-inset="true">
+                <li data-icon="plus" data-theme="b" ><a href="#"><h2>Trigger Groups</h2></a><a href="#popupTGAdd" data-rel="popup" data-theme="b">New Trigger Group</a></li>
+            </ul>
+
+        </div><!-- /content -->
+ 
+        <div data-role="footer">
+            <h4>Irrigation Control</h4>
+        </div><!-- /footer -->
+
+        <div data-role="panel" data-position="right" data-display="overlay" id="settings" data-theme="a">
+            <ul data-role="listview">
+                <li data-icon="delete"><a href="#" data-rel="close">Close menu</a></li>
+                <li><a href="#irrigationui">Irrigation Overview</a></li>
+                <li><a href="#valveui">Manual Zone Control</a></li>
+                <li><a href="#schedule_rules">Irrigation Schedule</a></li>
+            </ul>
+        </div>
+
+        <div data-role="popup" id="popupSRAdd" data-theme="a">
+            <form id="srAddForm" data-ajax="false">
+                <div style="padding:10px 20px;">
+                    <h3>Create New Schedule Rule</h3>
+                    <label for="srn" class="ui-hidden-accessible">Name:</label>
+                    <input type="text" name="srname" id="srn" value="" placeholder="Name">
+                    <label for="srd" class="ui-hidden-accessible">Description:</label>
+                    <input type="text" name="srdesc" id="srd" value="" placeholder="Description">
+                    <button id="sr_submit" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Create</button>
+                </div>
+            </form>
+        </div>
+
+        <div data-role="popup" id="popupZGAdd" data-theme="a">
+            <form id="zgAddForm" data-ajax="false">
+                <div style="padding:10px 20px;">
+                    <h3>Create New Zone Group</h3>
+                    <label for="zgn" class="ui-hidden-accessible">Name:</label>
+                    <input type="text" name="zgname" id="zgn" value="" placeholder="Name">
+                    <label for="zgd" class="ui-hidden-accessible">Description:</label>
+                    <input type="text" name="zgdesc" id="zgd" value="" placeholder="Description">
+                    <button type="submit" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Create</button>
+                </div>
+            </form>
+        </div>
+
+        <div data-role="popup" id="popupTGAdd" data-theme="a">
+            <form id="tgAddForm" data-ajax="false">
+                <div style="padding:10px 20px;">
+                    <h3>Create New Trigger Group</h3>
+                    <label for="tgn" class="ui-hidden-accessible">Name:</label>
+                    <input type="text" name="tgname" id="tgn" value="" placeholder="Name">
+                    <label for="tgd" class="ui-hidden-accessible">Description:</label>
+                    <input type="text" name="tgdesc" id="tgd" value="" placeholder="Description">
+                    <button type="submit" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Create</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="scheduleRuleAction" data-role="popup" data-transition="pop">
+            <ul data-role="listview" data-inset="true" >
+                <li data-role="list-divider">Choose an Action</li>
+                <li><a id="sraDelete" href="#">Delete Schedule Rule</a></li>
+                <li><a id="sraChangeZG" href="#">Change Zone Group</a></li>
+                <li><a id="sraChangeTG" href="#">Change Trigger Group</a></li>
+            </ul>
+        </div>
+
+        <div data-role="popup" id="srChangeZoneGroupPopup" data-transition="pop">
+            <p>Example Text</p>
+            <select name="srczg_select" id="srZoneGroupSelect">
+            </select>
+            <a id="srChangeZoneGroup" href="#" class="ui-btn ui-corner-all">Done</a>
+        </div>
+
+         <div data-role="popup" id="srChangeTriggerGroupPopup" data-transition="pop">
+            <p>Example Text</p>
+            <select name="srctg_select" id="srTriggerGroupSelect">
+            </select>
+            <a id="srChangeTriggerGroup" href="#" class="ui-btn ui-corner-all">Done</a>
+        </div>
+
+        <div id="zoneGroupAction" data-role="popup" data-transition="pop">
+            <ul data-role="listview" data-inset="true" >
+                <li data-role="list-divider">Choose an Action</li>
+                <li><a id="zgaDelete" href="#">Delete Zone Group</a></li>
+                <li><a id="zgaNewRule" href="#">New Zone Rule</a></li>
+                <li><a id="zgaDeleteRule" href="#">Delete Zone Rule</a></li>
+            </ul>
+        </div>
+
+        <div data-role="popup" id="addZoneRulePopup" data-transition="pop">
+            <p>Example Text</p>
+            <div class="ui-field-contain">
+                <input id="atrpDateBox" type="text" data-role="datebox" data-options='{"mode":"timebox", "useInline":true, "useSetButton":false, "hideInput":true}'/>
+            </div>
+            <select name="zone_select" id="azrpZoneSelect">
+            </select>
+            <a id="azrpCreateRule" href="#" class="ui-btn ui-corner-all">Create Rule</a>
+            <a id="azrpDone" href="#" class="ui-btn ui-corner-all">Done</a>
+        </div>
+
+        <div data-role="popup" id="deleteZoneRulePopup" data-transition="pop">
+            <p>Example Text</p>
+            <select name="dzrp_select" id="dzrpRuleSelect">
+            </select>
+            <a id="dzrpDeleteRule" href="#" class="ui-btn ui-corner-all">Create Rule</a>
+            <a id="dzrpDone" href="#" class="ui-btn ui-corner-all">Done</a>
+        </div>
+
+        <div id="triggerGroupAction" data-role="popup" data-transition="pop">
+            <ul data-role="listview" data-inset="true" >
+                <li data-role="list-divider">Choose an Action</li>
+                <li><a id="tgaDelete" href="#">Delete Trigger Group</a></li>
+                <li><a id="tgaNewRule" href="#">New Trigger Rule</a></li>
+                <li><a id="tgaDeleteRule" href="#">Delete Trigger Rule</a></li>
+            </ul>
+        </div>
+
+        <div data-role="popup" id="addTriggerRulePopup" data-transition="pop">
+            <p>Example Text</p>
+            <div class="ui-field-contain">
+                <input id="atrpCalBox" type="text" data-role="datebox" data-options='{"mode":"calbox", "useInline":true, "hideInput":true}'/>
+            </div>
+            <div class="ui-field-contain">
+                <input id="atrpDateBox" type="text" data-role="datebox" data-options='{"mode":"timebox", "useInline":true, "useSetButton":false, "hideInput":true}'/>
+            </div>
+            <select name="scope_select" id="atrpScopeSelect">
+                <option value="once">Once</option>
+                <option value="second">Second</option>
+                <option value="minute">Minute</option>
+                <option value="hour">Hour</option>
+                <option value="day">Day</option>
+                <option value="week">Week</option>
+                <option value="even_week">Even Week</option>
+                <option value="odd_week">Odd Week</option>
+                <option value="month">Month</option>
+                <option value="year">Year</option>
+            </select>
+            <p id="atrpDateStr">Date string goes here</p>
+            <a id="atrpCreateRule" href="#" class="ui-btn ui-corner-all">Create Rule</a>
+            <a id="atrpDone" href="#" class="ui-btn ui-corner-all">Done</a>
+        </div>
+
+        <div data-role="popup" id="deleteTriggerRulePopup" data-transition="pop">
+            <p>Example Text</p>
+            <select name="dtrp_select" id="dtrpRuleSelect">
+            </select>
+            <a id="dtrpDeleteRule" href="#" class="ui-btn ui-corner-all">Create Rule</a>
+            <a id="dtrpDone" href="#" class="ui-btn ui-corner-all">Done</a>
+        </div>
+
+
+    </div><!-- /page -->
+</body>
+</html>
+
