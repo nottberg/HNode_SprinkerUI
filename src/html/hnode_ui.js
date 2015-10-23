@@ -117,6 +117,27 @@ function formatTriggerRuleOpStr( scope, reftime )
     return rtnStr;
 }
 
+function pad( number )
+{
+    var r = String(number);
+    if ( r.length === 1 )
+    {
+        r = '0' + r;
+    }
+    return r;
+}
+
+function formatRestUTCDate( date ) 
+{
+    return date.getUTCFullYear() 
+           + pad( date.getUTCMonth() + 1 ) 
+           + pad( date.getUTCDate() )
+           + 'T' 
+           + pad( date.getUTCHours() )
+           + pad( date.getUTCMinutes() )
+           + pad( date.getUTCSeconds() );
+};
+
 // A simple class for name value pairs.
 function SOField( name, value )
 {
@@ -372,6 +393,12 @@ function ZoneDefinition( clientObj, uiObj )
         var updateCallback = this.handleServerRefresh.bind(this);
         this.clientObj.getObjectDataForID( "proxy/zones", "zone", this.id, updateCallback );
     }
+
+    this.prepareForRemoval = function()
+    {
+        console.log("prepareForRemoval");
+    }
+
 }
 
 // Create an object for a zone rule
@@ -388,6 +415,11 @@ function ZoneRule( parentZG, uiObj )
     this.getObjRootNodeName = function()
     {
         return "schedule-zone-rule";
+    }
+
+    this.getRuleDisplayStr = function()
+    {
+        return this.zoneID + " -- " + this.duration + " sec";
     }
 
     this.setFromGenObj = function( genObj )
@@ -426,6 +458,11 @@ function ZoneRule( parentZG, uiObj )
         this.parent.clientObj.getObjectDataForID( url, "schedule-zone-rule", this.id, updateCallback );
     }
 
+    this.prepareForRemoval = function()
+    {
+        console.log("prepareForRemoval");
+        //this.removeAllUI();
+    }
 }
 
 // Create an object for a zone group
@@ -445,6 +482,11 @@ function ZoneGroup( clientObj, uiObj )
     this.getObjRootNodeName = function()
     {
         return "schedule-zone-group";
+    }
+
+    this.getRuleList = function()
+    {
+        return this.zrObjList;
     }
 
     this.setFromGenObj = function( genObj )
@@ -584,6 +626,11 @@ function TriggerRule( parentTG, uiObj )
         return "schedule-trigger-rule";
     }
 
+    this.getRuleDisplayStr = function()
+    {
+        return this.getTimeString();
+    }
+
     this.setFromGenObj = function( genObj )
     {   
         console.log( "setFromGenObj" );
@@ -657,6 +704,11 @@ function TriggerGroup( clientObj, uiObj )
     this.getObjRootNodeName = function()
     {
         return "schedule-trigger-group";
+    }
+
+    this.getRuleList = function()
+    {
+        return this.trObjList;
     }
 
     this.setFromGenObj = function( genObj )
@@ -779,6 +831,35 @@ function TriggerGroup( clientObj, uiObj )
         var debugStr = this.id +  ": " + this.name + " - " + this.desc;
         console.log( debugStr );
     }
+}
+
+// Hold the data for a log entry
+function PastScheduleLogEntry()
+{
+    this.id     = "";
+    this.msg    = "";
+    this.seqnum = 0;
+    this.tstamp = new Date();
+
+/*
+    this.setFromGenObj = function( genObj )
+    {   
+        console.log( "setFromGenObj" );
+
+        this.id       = genObj.getField('id');
+        this.type     = genObj.getField('type');
+        this.scope    = genObj.getField('scope');
+
+        var refTime = genObj.getField( 'reftime' );
+
+        var expTime = refTime.substring(0, 4) + "-" + refTime.substring(4, 6) + "-" + refTime.substring(6,8);
+        expTime += "T";
+        expTime += refTime.substring(9, 11) + ":" + refTime.substring(11, 13) + ":" + refTime.substring(13, 15);
+
+        this.reftime  = new Date( Date.parse( expTime ) );
+    }
+*/
+
 }
 
 // Create the base irrigation client object
@@ -1104,6 +1185,11 @@ function IrrigationClient()
         this.getObjIDList( "proxy/zones", "hnode-zonelist", handleZDIDUpdate );
     }
 
+    this.getZoneDefinitionList = function()
+    {
+        return this.zdObjList;
+    }
+
     this.handleScheduleRuleIDUpdate = function( idList )
     {
         var pruneList = [];
@@ -1294,6 +1380,20 @@ function IrrigationClient()
         this.getObjIDList( "proxy/schedule/zone-groups", "zone-group-list", handleZGIDUpdate );
     }
 
+    this.getZoneRuleList = function( zgidStr )
+    {
+        // Find the referenced zone group
+        for( index in this.zgObjList )
+        {
+            if( this.zgObjList[index].id == zgidStr )
+            {
+                return this.zgObjList[index].getRuleList();
+            }
+        }
+
+        return null;
+    }
+
     this.deleteZoneGroup = function( idStr )
     {
         console.log( "Client Delete Zone Group: " + idStr );
@@ -1312,6 +1412,34 @@ function IrrigationClient()
 
         var completeCallback = this.updateZoneGroups.bind(this);
         this.createRESTObject( 'proxy/schedule/zone-groups/', postData, completeCallback );
+    }
+
+    this.createNewZoneRule = function( zgid, zoneID, onSec, offSec )
+    {
+        var postData = "<schedule-zone-rule>"
+        postData += "<type>" + "fixedduration" + "</type>";
+        postData += "<duration>" + onSec + "</duration>";
+        postData += "<zoneid>" + zoneID + "</zoneid>";
+        postData += "</schedule-zone-rule>";        
+
+        console.log( postData );
+
+        var url = 'proxy/schedule/zone-groups/' + zgid + "/members";
+        
+        console.log( url );
+
+        var completeCallback = this.updateZoneGroups.bind(this);
+        this.createRESTObject( url, postData, completeCallback );
+    }
+
+    this.deleteZoneRule = function( zgid, zrid )
+    {
+        var url = 'proxy/schedule/zone-groups/' + zgid + '/members/';
+        
+        console.log( url );
+
+        var completeCallback = this.updateZoneGroups.bind(this);
+        this.deleteRESTObject( url, zrid, completeCallback );
     }
 
     this.newTriggerGroupObjectCallback = function( id )
@@ -1340,6 +1468,20 @@ function IrrigationClient()
         this.getObjIDList( "proxy/schedule/trigger-groups", "trigger-group-list", handleTGIDUpdate );
     }
 
+    this.getTriggerRuleList = function( tgidStr )
+    {
+        // Find the referenced zone group
+        for( index in this.tgObjList )
+        {
+            if( this.tgObjList[index].id == tgidStr )
+            {
+                return this.tgObjList[index].getRuleList();
+            }
+        }
+
+        return null;
+    }
+
     this.deleteTriggerGroup = function( idStr )
     {
         console.log( "Client Delete Trigger Group: " + idStr );
@@ -1359,6 +1501,93 @@ function IrrigationClient()
         this.createRESTObject( 'proxy/schedule/trigger-groups/', postData, completeCallback );
     }
 
+    this.createNewTriggerRule = function( tgid, type, scope, refdate )
+    {
+        var postData = "<schedule-trigger-rule>"
+        postData += "<type>" + "time" + "</type>";
+        postData += "<scope>" + scope + "</scope>";
+        postData += "<reftime>" + formatRestUTCDate( refdate ) + "</reftime>";
+        postData += "</schedule-trigger-rule>";        
+
+        console.log( postData );
+
+        var url = 'proxy/schedule/trigger-groups/' + tgid + "/members";
+        
+        console.log( url );
+
+        var completeCallback = this.updateTriggerGroups.bind(this);
+        this.createRESTObject( url, postData, completeCallback );
+    }
+
+    this.deleteTriggerRule = function( tgid, trid )
+    {
+        var url = 'proxy/schedule/trigger-groups/' + tgid + '/members/';
+        
+        console.log( url );
+
+        var completeCallback = this.updateTriggerGroups.bind(this);
+        this.deleteRESTObject( url, trid, completeCallback );
+    }
+
+    this.getPastScheduleLog = function( listCallback )
+    {
+        var url = 'proxy/schedule/event-log/';
+
+        $.get( url, function( data, status ){
+            console.log( "get status: " + status );
+            console.log( "get data: " + data );
+
+            var logList = [];
+
+            if( $( data ).is( "schedule-event-log" ) == false )
+            {
+                return;
+            }
+
+            $( data ).find('log-entry').each( function( index ){
+
+                var entry = new PastScheduleLogEntry();
+
+                // Parse child elements
+                $( this ).children().each( function( index )
+                {
+
+                    switch( $(this).prop( "nodeName" ).toLowerCase() )
+                    {
+                        case 'event-id':
+                            entry.id = $(this).text();
+                        break;
+
+                        case 'event-msg':
+                            entry.msg = $(this).text();
+                        break;
+
+                        case 'seqnum':
+                            entry.seqnum = parseInt( $(this).text() );
+                        break;
+
+                        case 'timestamp':
+                            var refTime = $(this).text();
+
+                            var expTime = refTime.substring(0, 4) + "-" + refTime.substring(4, 6) + "-" + refTime.substring(6,8);
+                            expTime += "T";
+                            expTime += refTime.substring(9, 11) + ":" + refTime.substring(11, 13) + ":" + refTime.substring(13, 15);
+
+                            entry.tstamp = new Date( Date.parse( expTime ) );
+                        break;
+                    }
+
+                });
+
+                console.log( entry );
+
+                logList.push( entry );
+            });
+   
+            // Make a callback with the list
+            listCallback( logList );
+        });
+    }
 
     this.debugPrint = function()
     {
@@ -1418,6 +1647,16 @@ function IrrigationUI( clientObj )
     { 
         console.log("tga: " + this.curTGObj.id );
         console.log("Create Rule click");
+
+        var date   = $( "#atrpCalBox" ).datebox('getTheDate');
+        var time  = $( "#atrpDateBox" ).datebox('getTheDate');
+        var scope = $( "#atrpScopeSelect option:selected" ).attr("value");
+
+        date.setHours( time.getHours() );
+        date.setMinutes( time.getMinutes() );
+        date.setSeconds( time.getSeconds() );
+        
+        this.clientObj.createNewTriggerRule( this.curTGObj.id, "time", scope, date );
     }
 
     this.TGACB_ExitButton = function() 
@@ -1473,6 +1712,13 @@ function IrrigationUI( clientObj )
     {
         console.log( "TGACB_deleteRuleButton" );
 
+        var tgID = this.curTGObj.id;
+
+        var trID = $( "#dtrpRuleSelect option:selected" ).val();
+
+        console.log( "tg: " + tgID + "  tr: " + trID );
+
+        this.clientObj.deleteTriggerRule( tgID, trID );
     }
 
     this.TGACB_deleteRuleExit = function( )
@@ -1487,6 +1733,27 @@ function IrrigationUI( clientObj )
         //console.log("tga: " + this.curTGObj.id );
         console.log( "TGACB_displayDeleteRule" );
 
+        // Clear any old rule records
+        $( "#dtrpRuleSelect" ).empty();
+
+        // Fill the select element with the list of rules
+        var triggerRuleList = this.clientObj.getTriggerRuleList( this.curTGObj.id );
+
+        console.log( triggerRuleList );
+
+        for( index in triggerRuleList )
+        {
+            var optionStr = '<option value="' + triggerRuleList[ index ].id + '">' + triggerRuleList[ index ].getRuleDisplayStr() + '</option>'; 
+            $( "#dtrpRuleSelect" ).append( optionStr );
+        }
+
+        if( triggerRuleList.length != 0 )
+        {
+            $( "#dtrpRuleSelect" ).val( triggerRuleList[0].id ).attr('selected', true).siblings('options').removeAttr('selected');
+        }
+
+        $( "#dtrpRuleSelect" ).selectmenu( "refresh", true );
+
         $( "#deleteTriggerRulePopup" ).popup('open');
         $( "#triggerGroupAction" ).off( 'popupafterclose' );
     }
@@ -1500,18 +1767,62 @@ function IrrigationUI( clientObj )
 
         $( "#zoneGroupAction" ).popup('close');
 
-/*
+
         if( this.clientObj != null )
         {
-            this.clientObj.deleteZoneGroup( this.id );
+            this.clientObj.deleteZoneGroup( this.curZGObj.id );
         }
-*/
+
+    }
+
+    this.ZRACB_AddRuleButton = function() 
+    { 
+        console.log("zga: " + this.curZGObj.id );
+        console.log("Create Rule click");
+
+        var zoneID = $( "#azrpZoneSelect option:selected" ).val();
+        var onSec   = $( "#azrpOnDuration" ).datebox('getLastDur');
+        var offSec   = $( "#azrpOffDuration" ).datebox('getLastDur');
+
+        console.log( "Zone: " + zoneID );
+        console.log( "On: " + onSec );
+        console.log( "Off: " + offSec );        
+      
+        this.clientObj.createNewZoneRule( this.curZGObj.id, zoneID, onSec, offSec );
+    }
+
+    this.ZRACB_ExitButton = function() 
+    { 
+        console.log("zga: " + this.curZGObj.id );
+        console.log("Exit click");
+        $( "#addZoneRulePopup" ).popup('close');
     }
 
     this.ZGACB_displayAddRule = function()
     {
         console.log("zga: " + this.curZGObj.id );
         console.log( "ZGACB_displayAddZoneRule" );
+
+        // Clear any old rule records
+        $( "#azrpZoneSelect" ).empty();
+
+        // Fill the select element with the list of rules
+        var zoneDefList = this.clientObj.getZoneDefinitionList();
+
+        console.log( zoneDefList );
+
+        for( index in zoneDefList )
+        {
+            var optionStr = '<option value="' + zoneDefList[ index ].id + '">' + zoneDefList[ index ].name + '</option>'; 
+            $( "#azrpZoneSelect" ).append( optionStr );
+        }
+
+        if( zoneDefList.length != 0 )
+        {
+            $( "#azrpZoneSelect" ).val( zoneDefList[0].id ).attr('selected', true).siblings('options').removeAttr('selected');
+        }
+
+        $( "#azrpZoneSelect" ).selectmenu( "refresh", true );
 
         $( "#addZoneRulePopup" ).popup('open');
         $( "#zoneGroupAction" ).off( 'popupafterclose' );
@@ -1530,6 +1841,13 @@ function IrrigationUI( clientObj )
     {
         console.log( "ZGACB_deleteRuleButton" );
 
+        var zgID = this.curZGObj.id;
+
+        var zrID = $( "#dzrpRuleSelect option:selected" ).val();
+
+        console.log( "zg: " + zgID + "  zr: " + zrID );
+
+        this.clientObj.deleteZoneRule( zgID, zrID );
     }
 
     this.ZGACB_deleteRuleExit = function( )
@@ -1541,18 +1859,28 @@ function IrrigationUI( clientObj )
 
     this.ZGACB_displayDeleteRule = function()
     {
-        //console.log("tga: " + this.curTGObj.id );
-        console.log( "ZGACB_displayDeleteRule" );
+        console.log( "ZGACB_displayDeleteRule: " + this.curZGObj.id );
 
         // Clear any old rule records
         $( "#dzrpRuleSelect" ).empty();
 
         // Fill the select element with the list of rules
-        //this.ClientObj.getZoneRule
-        var optionStr = '<option value="zr1">ZR1</option>';
-        $( "#dzrpRuleSelect" ).append( optionStr );
-        var optionStr = '<option value="zr2">ZR2</option>';
-        $( "#dzrpRuleSelect" ).append( optionStr );
+        var zoneRuleList = this.clientObj.getZoneRuleList( this.curZGObj.id );
+
+        console.log( zoneRuleList );
+
+        for( index in zoneRuleList )
+        {
+            var optionStr = '<option value="' + zoneRuleList[ index ].id + '">' + zoneRuleList[ index ].getRuleDisplayStr() + '</option>'; 
+            $( "#dzrpRuleSelect" ).append( optionStr );
+        }
+
+        if( zoneRuleList.length != 0 )
+        {
+            $( "#dzrpRuleSelect" ).val( zoneRuleList[0].id ).attr('selected', true).siblings('options').removeAttr('selected');
+        }
+
+        $( "#dzrpRuleSelect" ).selectmenu( "refresh", true );
 
         $( "#deleteZoneRulePopup" ).popup('open');
         $( "#zoneGroupAction" ).off( 'popupafterclose' );
@@ -1705,6 +2033,13 @@ function IrrigationUI( clientObj )
             $( "#zoneGroupAction" ).popup('close');
         });
 
+        var azrpCreateRuleCB = this.ZRACB_AddRuleButton.bind(this);
+        $( "#azrpCreateRule" ).on( "click", azrpCreateRuleCB );
+
+        var azrpExitCB = this.ZRACB_ExitButton.bind(this);
+        $( "#azrpDone" ).on( "click", azrpExitCB );
+
+
         var zgDeleteRuleCB = this.ZGACB_displayDeleteRule.bind(this);
 
         $( "#zgaDeleteRule" ).on("click", function() 
@@ -1714,7 +2049,7 @@ function IrrigationUI( clientObj )
             $( "#zoneGroupAction" ).popup('close');
         });
 
-        // Delete Trigger Rule Popup
+        // Delete Zone Rule Popup
         var zrChangeRuleCB = this.ZGACB_deleteRuleChange.bind(this);
         $( "#dzrpRuleSelect" ).on( 'change', zrChangeRuleCB );
 
@@ -1746,9 +2081,44 @@ function IrrigationUI( clientObj )
 
     this.refreshAll = function()
     {
+        this.clientObj.updateZoneDefinitions();
         this.clientObj.updateScheduleRules();
         this.clientObj.updateZoneGroups();
         this.clientObj.updateTriggerGroups();
+    }
+
+    this.initUpcomingScheduleEventHandlers = function()
+    {
+
+    }
+
+    this.refreshUpcomingSchedule = function()
+    {
+ 
+    }
+
+    this.initPastScheduleEventHandlers = function()
+    {
+
+    }
+
+    this.pastScheduleUpdateCallback = function( logList )
+    {
+        console.log( logList );
+        
+        for( var i = 0; i < logList.length; i++ )
+        {
+            var trHtml = '<tr><td>' + logList[i].tstamp + '</td><td>' + logList[i].seqnum + '</td><td>' + logList[i].id + '</td><td>' + logList[i].msg + '</td></tr>';
+            $( "#past-schedule-entry-table-body" ).append( trHtml );
+        }
+
+        $( "#past-schedule-entry-table" ).table( "rebuild" );
+    }
+
+    this.refreshPastScheduleLog = function()
+    {
+        var updateCB = this.pastScheduleUpdateCallback.bind(this);
+        this.clientObj.getPastScheduleLog( updateCB );
     }
 }
 
@@ -2684,15 +3054,56 @@ irrUI = new IrrigationUI( irrClient );
 
     });
 
+    $( document ).on( "pageshow", "#scheduleui", function( event ) 
+    {
+        console.log("pageshow scheduleui");
+
+        irrUI.initUpcomingScheduleEventHandlers();
+
+        irrUI.refreshUpcomingSchedule();
+    });
+
+    $( document ).on( "pageshow", "#logui", function( event ) 
+    {
+        console.log("pageshow logui");
+
+        irrUI.initPastScheduleEventHandlers();
+
+        irrUI.refreshPastScheduleLog();
+    });
 
 function updateScheduleRulesUI()
 {
     console.log("updateScheduleRulesUI");
 }
 
-    $( document ).on( "pageshow", "#schedule_rules", function( event ) 
+    $( document ).on( "pageshow", "#schedule_rules_ui", function( event ) 
     {
         console.log("pageshow schedule_rules");
+
+        irrClient.setScheduleRuleUpdateCallback( updateScheduleRulesUI ); 
+
+        irrUI.initEventHandlers();
+
+        irrUI.refreshAll();
+
+    });
+
+    $( document ).on( "pageshow", "#zone_rules_ui", function( event ) 
+    {
+        console.log("pageshow zone_rules");
+
+        irrClient.setScheduleRuleUpdateCallback( updateScheduleRulesUI ); 
+
+        irrUI.initEventHandlers();
+
+        irrUI.refreshAll();
+
+    });
+
+    $( document ).on( "pageshow", "#trigger_rules_ui", function( event ) 
+    {
+        console.log("pageshow trigger_rules");
 
         irrClient.setScheduleRuleUpdateCallback( updateScheduleRulesUI ); 
 
