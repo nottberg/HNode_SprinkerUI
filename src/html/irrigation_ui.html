@@ -214,7 +214,7 @@
             </div>
 
             <ul id="srListview" data-role="listview" data-split-icon="bars" data-split-theme="a" data-inset="true">
-                <li data-icon="plus" data-theme="b" ><a href="#"><h2>Schedule Rules</h2></a><a href="#popupSRAdd" data-rel="popup" data-theme="b">New Schedule Rule</a></li>
+                <li data-icon="plus" data-theme="b" ><a href="#"><h2>Schedule Rules</h2></a><a href="#" id="srAddButton" data-theme="b">New Schedule Rule</a></li>
             </ul>
         </div><!-- /content -->
  
@@ -236,42 +236,31 @@
             </ul>
         </div>
 
-        <div data-role="popup" id="popupSRAdd" data-theme="a">
-            <form id="srAddForm" data-ajax="false">
-                <div style="padding:10px 20px;">
-                    <h3>Create New Schedule Rule</h3>
-                    <label for="srn" class="ui-hidden-accessible">Name:</label>
-                    <input type="text" name="srname" id="srn" value="" placeholder="Name">
-                    <label for="srd" class="ui-hidden-accessible">Description:</label>
-                    <input type="text" name="srdesc" id="srd" value="" placeholder="Description">
-                    <button id="sr_submit" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Create</button>
+        <div data-role="popup" id="srActionPopup" data-transition="pop">
+            <h3>Schedule Rule Actions: <div id="srActionName">testSR<div></h3>
+            <div data-role="collapsibleset" data-theme="a" data-content-theme="a">
+
+                <div data-role="collapsible">
+                    <h3>Update</h3>
+                    <p>Update Name, Description, Zone Group, and Trigger Group settings.</p>
+                    <label for="srun" class="ui-hidden-accessible">Name:</label>
+                    <input type="text" name="srname" id="srun" value="" placeholder="Name">
+                    <label for="srud" class="ui-hidden-accessible">Description:</label>
+                    <input type="text" name="srdesc" id="srud" value="" placeholder="Description">
+                    <select name="srczg_select" id="srZoneGroupSelect">
+                    </select>
+                    <select name="srctg_select" id="srTriggerGroupSelect">
+                    </select>
                 </div>
-            </form>
-        </div>
 
-        <div id="scheduleRuleAction" data-role="popup" data-transition="pop">
-            <ul data-role="listview" data-inset="true" >
-                <li data-role="list-divider">Choose an Action</li>
-                <li><a id="sraDelete" href="#">Delete Schedule Rule</a></li>
-                <li><a id="sraChangeZG" href="#">Change Zone Group</a></li>
-                <li><a id="sraChangeTG" href="#">Change Trigger Group</a></li>
-            </ul>
-        </div>
+                <div data-role="collapsible">
+                    <h3>Delete</h3>
+                    <p>Delete this rule?</p>
+                    <a href="#" id="sraDelete" class="ui-btn ui-corner-all">Confirm Delete</a>
+                </div>
 
-        <div data-role="popup" id="srChangeZoneGroupPopup" data-transition="pop">
-            <p>Example Text</p>
-            <select name="srczg_select" id="srZoneGroupSelect">
-            </select>
-            <a id="srChangeZoneGroup" href="#" class="ui-btn ui-corner-all">Done</a>
+            </div>
         </div>
-
-         <div data-role="popup" id="srChangeTriggerGroupPopup" data-transition="pop">
-            <p>Example Text</p>
-            <select name="srctg_select" id="srTriggerGroupSelect">
-            </select>
-            <a id="srChangeTriggerGroup" href="#" class="ui-btn ui-corner-all">Done</a>
-        </div>
-
     </div><!-- /page -->
 
     <div data-role="page" id="zone_rules_ui">

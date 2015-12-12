@@ -1130,6 +1130,96 @@ function IrrigationClient()
         });                   
     }
 
+    this.updateScheduleRuleName = function( srID, name )
+    {
+        var putData = '<schedule-event-rule>';
+        putData += '<name>'+name+'</name>';
+        putData += '</schedule-event-rule>';
+
+        var putURL = 'proxy/schedule/rules/' + srID;
+
+        var completeCallback = this.updateScheduleRules.bind(this);
+
+        console.log( 'Ajax put: ' + putData );
+
+        // Send data to server through the Ajax call
+        // action is functionality we want to call and outputJSON is our data
+        $.ajax({url: putURL,
+                data: putData,
+                type: 'put',                   
+                async: 'true',
+                contentType: 'application/xml',
+                dataType: 'xml',
+                beforeSend: function()
+                {
+                    // This callback function will trigger before data is sent
+                    $.mobile.loading( 'show' );
+                },
+                complete: function() 
+                {
+                    // This callback function will trigger on data sent/received complete
+                    $.mobile.loading( 'hide' ); // This will hide ajax spinner
+                },
+                success: function( data, textStatus, jqXHR ) 
+                {
+                    console.log( "Put Done: " + textStatus );
+                    console.log( jqXHR.getAllResponseHeaders() );
+
+                    completeCallback();                         
+                },
+                error: function( request, error ) 
+                {
+                    // This callback function will trigger on unsuccessful action                
+                    alert('Network error has occurred please try again!');
+                }
+        });
+    }
+
+    this.updateScheduleRuleDesc = function( srID, desc )
+    {
+        var putData = '<schedule-event-rule>';
+        putData += '<desc>'+desc+'</desc>';
+        putData += '</schedule-event-rule>';
+
+        var putURL = 'proxy/schedule/rules/' + srID;
+
+        var completeCallback = this.updateScheduleRules.bind(this);
+
+        console.log( 'Ajax put: ' + putData );
+
+        // Send data to server through the Ajax call
+        // action is functionality we want to call and outputJSON is our data
+        $.ajax({url: putURL,
+                data: putData,
+                type: 'put',                   
+                async: 'true',
+                contentType: 'application/xml',
+                dataType: 'xml',
+                beforeSend: function()
+                {
+                    // This callback function will trigger before data is sent
+                    $.mobile.loading( 'show' );
+                },
+                complete: function() 
+                {
+                    // This callback function will trigger on data sent/received complete
+                    $.mobile.loading( 'hide' ); // This will hide ajax spinner
+                },
+                success: function( data, textStatus, jqXHR ) 
+                {
+                    console.log( "Put Done: " + textStatus );
+                    console.log( jqXHR.getAllResponseHeaders() );
+
+                    completeCallback();                         
+                },
+                error: function( request, error ) 
+                {
+                    // This callback function will trigger on unsuccessful action                
+                    alert('Network error has occurred please try again!');
+                }
+        });
+    }
+
     this.updateScheduleRuleZoneGroup = function( srID, zgID )
     {
         var putData = '<schedule-event-rule>';
@@ -1218,6 +1308,20 @@ function IrrigationClient()
                     alert('Network error has occurred please try again!');
                 }
         });
+    }
+
+    this.getScheduleRule = function( srid )
+    {
+        // Find the referenced zone group
+        for( index in this.srObjList )
+        {
+            if( this.srObjList[index].id == srid )
+            {
+                return this.srObjList[index];
+            }
+        }
+
+        return null;
     }
 
     this.getScheduleRuleList = function()
@@ -1484,37 +1588,74 @@ function ScheduleRuleUI( clientObj )
 
     this.SRACB_deleteGroup = function()
     {
-        console.log("sra: " + this.curSRObj.id );
+        var srID = $( "#srActionName" ).attr("srid");
+
+        console.log("sra: " + srID );
         console.log( "SRACB_deleteGroup" );
 
-        $( "#scheduleRuleAction" ).popup('close');
+        $( "#srActionPopup" ).popup('close');
 
-/*
-        if( this.clientObj != null )
-        {
-            this.clientObj.deleteZoneGroup( this.id );
-        }
-*/
+        this.clientObj.deleteScheduleRule( srID );
     }
 
-    this.SRACB_ChangeZoneDoneButton = function( )
+    this.SRACB_NameBlurCB = function( )
     {
-        console.log( "SRACB_ChangeZoneDone" );
+        console.log( "SRACB_NameBlurCB" );
 
-        var srID = this.curSRObj.id;
+        var srID = $( "#srActionName" ).attr("srid");
+        var name = $('#srun').val();
+
+        console.log( "sr: " + srID + "  name: " + name );
+
+        this.clientObj.updateScheduleRuleName( srID, name );
+    }
+
+    this.SRACB_DescBlurCB = function( )
+    {
+        console.log( "SRACB_DescBlurCB" );
+
+        var srID = $( "#srActionName" ).attr("srid");
+        var desc = $('#srud').val();
+
+        console.log( "sr: " + srID + "  desc: " + desc );
+
+        this.clientObj.updateScheduleRuleDesc( srID, desc );
+    }
+
+    this.SRACB_ZoneGroupChangeCB = function( )
+    {
+        console.log( "SRACB_ZoneGroupChangeCB" );
+
+        var srID = $( "#srActionName" ).attr("srid");
         var zgID = $( "#srZoneGroupSelect option:selected" ).val();
 
         console.log( "sr: " + srID + "  zg: " + zgID );
 
-        $( "#srChangeZoneGroupPopup" ).popup('close');
-
         this.clientObj.updateScheduleRuleZoneGroup( srID, zgID );
     }
 
-    this.SRACB_changeZoneGroup = function()
+    this.SRACB_TriggerGroupChangeCB = function( )
     {
-        console.log("sra: " + this.curSRObj.id );
-        console.log( "SRACB_changeZoneGroup" );
+        console.log( "SRACB_TriggerGroupChangeCB" );
+
+        var srID = $( "#srActionName" ).attr("srid");
+        var tgID = $( "#srTriggerGroupSelect option:selected" ).val();
+
+        console.log( "sr: " + srID + "  tg: " + tgID );
+
+        this.clientObj.updateScheduleRuleTriggerGroup( srID, tgID );
+    }
+
+    this.displaySRA = function( srid )
+    {
+        console.log( "SRA display: " + srid );
+
+        // Get a copy of the Schedule Rule object
+        var srObj = this.clientObj.getScheduleRule( srid );
+
+        // Set the text fields
+        $( "#srun" ).val( srObj.name );
+        $( "#srud" ).val( srObj.desc );
 
         // Clear any old rule records
         $( "#srZoneGroupSelect" ).empty();
@@ -1526,13 +1667,16 @@ function ScheduleRuleUI( clientObj )
 
         for( index in zoneGroupList )
         {
-            var optionStr = '<option value="' + zoneGroupList[ index ].id + '">' + zoneGroupList[ index ].name + '</option>'; 
+            var curid = zoneGroupList[ index ].id;
+            var optionStr = '<option value="' + curid + '">' + zoneGroupList[ index ].name + '</option>'; 
             $( "#srZoneGroupSelect" ).append( optionStr );
-        }
 
-        if( zoneGroupList.length != 0 )
-        {
-            $( "#srZoneGroupSelect" ).val( zoneGroupList[0].id ).attr('selected', true).siblings('options').removeAttr('selected');
+            console.log( "curid: " + curid + "  zgid: " + srObj.zgID );
+
+            if( curid == srObj.zgID )
+            {
+                $( "#srZoneGroupSelect" ).val( curid ).attr('selected', true).siblings('options').removeAttr('selected');
+            } 
         }
 
         console.log( "SRACB_changeZoneGroup-2" );
@@ -1541,29 +1685,6 @@ function ScheduleRuleUI( clientObj )
 
         console.log( "SRACB_changeZoneGroup-3" );
 
-        $( "#srChangeZoneGroupPopup" ).popup('open');
-        $( "#scheduleRuleAction" ).off( 'popupafterclose' );
-
-    }
-
-    this.SRACB_ChangeTriggerDoneButton = function( )
-    {
-        console.log( "SRACB_ChangeTriggerDone" );
-
-        var srID = this.curSRObj.id;
-        var tgID = $( "#srTriggerGroupSelect option:selected" ).val();
-
-        console.log( "sr: " + srID + "  tg: " + tgID );
-
-        $( "#srChangeTriggerGroupPopup" ).popup('close');
-
-        this.clientObj.updateScheduleRuleTriggerGroup( srID, tgID );
-    }
-
-    this.SRACB_changeTriggerGroup = function()
-    {
-        console.log("sra: " + this.curSRObj.id );
-        console.log( "SRACB_changeTriggerGroup" );
 
         // Clear any old rule records
         $( "#srTriggerGroupSelect" ).empty();
@@ -1575,80 +1696,62 @@ function ScheduleRuleUI( clientObj )
 
         for( index in triggerGroupList )
         {
-            var optionStr = '<option value="' + triggerGroupList[ index ].id + '">' + triggerGroupList[ index ].name + '</option>'; 
+            var curid = triggerGroupList[ index ].id;
+            var optionStr = '<option value="' + curid + '">' + triggerGroupList[ index ].name + '</option>'; 
             $( "#srTriggerGroupSelect" ).append( optionStr );
-        }
 
-        if( triggerGroupList.length != 0 )
-        {
-            $( "#srTriggerGroupSelect" ).val( triggerGroupList[0].id ).attr('selected', true).siblings('options').removeAttr('selected');
+            console.log( "curid: " + curid + "  tgid: " + srObj.tgID );
+
+            if( curid == srObj.tgID )
+            {
+                $( "#srTriggerGroupSelect" ).val( curid ).attr('selected', true).siblings('options').removeAttr('selected');
+            }
         }
 
         $( "#srTriggerGroupSelect" ).selectmenu( "refresh", true );
 
-        $( "#srChangeTriggerGroupPopup" ).popup('open');
-        $( "#scheduleRuleAction" ).off( 'popupafterclose' );
+        // Update the rule identity
+        $("#srActionName").attr('srid', srid);
+        $("#srActionName").html( srid );
 
-    }
-
-    this.displaySRA = function( srObj )
-    {
-        console.log( "SRA display: " + srObj.id );
-
-        this.curSRObj = srObj;
-
-        $( "#scheduleRuleAction" ).popup('open');
+        $( "#srActionPopup" ).popup('open');
     }
 
     // catch the form's submit event
-    this.handleNewSR = function( e ) 
+    this.srAddButton = function() 
     { 
-        e.preventDefault();
+        console.log("sr add Button");
 
-        this.clientObj.createNewScheduleRule( $('#srn').val(), $('#srd').val() );
-
-        $( "#popupSRAdd" ).popup( 'close' );
-
-        return false; // cancel original event to prevent form submitting
+        this.clientObj.createNewScheduleRule( "New SR", "" );
     }
 
     this.initEventHandlers = function()
     {
         // Schedule Rule Actions
+        $( "#srAddButton" ).off( "click" );
+        var srAddCB = this.srAddButton.bind(this);
+        $( "#srAddButton" ).on( "click", srAddCB );
+
         $( "#sraDelete" ).off("click");
         var srDeleteCB = this.SRACB_deleteGroup.bind(this);
         $( "#sraDelete" ).on( "click", srDeleteCB );
 
-        $( "#srChangeZoneGroup" ).off( "click" );
-        var srChangeZoneDoneCB = this.SRACB_ChangeZoneDoneButton.bind(this);
-        $( "#srChangeZoneGroup" ).on( "click", srChangeZoneDoneCB );
+        $( "#srun" ).off( "blur" );
+        var srNameBlurCB = this.SRACB_NameBlurCB.bind(this);
+        $( "#srun" ).on( "blur", srNameBlurCB );
 
-        $( "#sraChangeZG" ).off("click");
-        var srChangeZGCB = this.SRACB_changeZoneGroup.bind(this);
-        $( "#sraChangeZG" ).on("click", function() 
-        {
-            $( "#scheduleRuleAction" ).off( 'popupafterclose' );
-            $( "#scheduleRuleAction" ).on( 'popupafterclose', function() { srChangeZGCB(); } );
-            $( "#scheduleRuleAction" ).popup('close');
-        });
+        $( "#srud" ).off( "blur" );
+        var srDescBlurCB = this.SRACB_DescBlurCB.bind(this);
+        $( "#srud" ).on( "blur", srDescBlurCB );
 
-        $( "#srChangeTriggerGroup" ).off( "click" );
-        var srChangeTriggerDoneCB = this.SRACB_ChangeTriggerDoneButton.bind(this);
-        $( "#srChangeTriggerGroup" ).on( "click", srChangeTriggerDoneCB );
+        $( "#srZoneGroupSelect" ).off( 'change' );
+        var srZGChangeCB = this.SRACB_ZoneGroupChangeCB.bind(this);
+        $( "#srZoneGroupSelect" ).on( 'change', srZGChangeCB );
 
-        $( "#sraChangeTG" ).off("click");
-        var srChangeTGCB = this.SRACB_changeTriggerGroup.bind(this);
-        $( "#sraChangeTG" ).on("click", function() 
-        {
-            $( "#scheduleRuleAction" ).off( 'popupafterclose' );
-            $( "#scheduleRuleAction" ).on( 'popupafterclose', function() { srChangeTGCB(); } );
-            $( "#scheduleRuleAction" ).popup('close');
-        });
+        $( "#srTriggerGroupSelect" ).off( 'change' );
+        var srTGChangeCB = this.SRACB_TriggerGroupChangeCB.bind(this);
+        $( "#srTriggerGroupSelect" ).on( 'change', srTGChangeCB );
 
-        // Global rule adders
-        var submitCB = this.handleNewSR.bind(this);
-
-        $("#srAddForm").on('submit', submitCB ); 
     }
 
     this.refreshAll = function()
@@ -1716,11 +1819,12 @@ function ScheduleRuleUI( clientObj )
 
             $( "#srListview" ).listview( "refresh" );
 
-            var actionCB = this.displaySRA.bind(this, srObj);
+            var actionCB = this.displaySRA.bind(this);
 
             // Setup the event for the popup
+            $('#'+idStr).attr('srid', srObj.id);
             $('#'+idStr).off('click');
-            $('#'+idStr).on('click', function() { actionCB(); } );
+            $('#'+idStr).on('click', function() { console.log( $(this).attr('srid') ); actionCB( $(this).attr('srid') ); } );
         }
     }
 
