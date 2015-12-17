@@ -1329,6 +1329,96 @@ function IrrigationClient()
         return this.srObjList;
     }
 
+    this.updateZoneGroupName = function( zgID, name )
+    {
+        var putData = '<schedule-zone-group>';
+        putData += '<name>' + name + '</name>';
+        putData += '</schedule-zone-group>';
+
+        var putURL = 'proxy/schedule/zone-groups/' + zgID;
+
+        var completeCallback = this.updateZoneGroups.bind(this);
+
+        console.log( 'Ajax put: ' + putData );
+
+        // Send data to server through the Ajax call
+        // action is functionality we want to call and outputJSON is our data
+        $.ajax({url: putURL,
+                data: putData,
+                type: 'put',                   
+                async: 'true',
+                contentType: 'application/xml',
+                dataType: 'xml',
+                beforeSend: function()
+                {
+                    // This callback function will trigger before data is sent
+                    $.mobile.loading( 'show' );
+                },
+                complete: function() 
+                {
+                    // This callback function will trigger on data sent/received complete
+                    $.mobile.loading( 'hide' ); // This will hide ajax spinner
+                },
+                success: function( data, textStatus, jqXHR ) 
+                {
+                    console.log( "Put Done: " + textStatus );
+                    console.log( jqXHR.getAllResponseHeaders() );
+
+                    completeCallback();                         
+                },
+                error: function( request, error ) 
+                {
+                    // This callback function will trigger on unsuccessful action                
+                    alert('Network error has occurred please try again!');
+                }
+        });
+    }
+
+    this.updateZoneGroupDesc = function( zgID, desc )
+    {
+        var putData = '<schedule-zone-group>';
+        putData += '<desc>' + desc + '</desc>';
+        putData += '</schedule-zone-group>';
+
+        var putURL = 'proxy/schedule/zone-groups/' + zgID;
+
+        var completeCallback = this.updateZoneGroups.bind(this);
+
+        console.log( 'Ajax put: ' + putData );
+
+        // Send data to server through the Ajax call
+        // action is functionality we want to call and outputJSON is our data
+        $.ajax({url: putURL,
+                data: putData,
+                type: 'put',                   
+                async: 'true',
+                contentType: 'application/xml',
+                dataType: 'xml',
+                beforeSend: function()
+                {
+                    // This callback function will trigger before data is sent
+                    $.mobile.loading( 'show' );
+                },
+                complete: function() 
+                {
+                    // This callback function will trigger on data sent/received complete
+                    $.mobile.loading( 'hide' ); // This will hide ajax spinner
+                },
+                success: function( data, textStatus, jqXHR ) 
+                {
+                    console.log( "Put Done: " + textStatus );
+                    console.log( jqXHR.getAllResponseHeaders() );
+
+                    completeCallback();                         
+                },
+                error: function( request, error ) 
+                {
+                    // This callback function will trigger on unsuccessful action                
+                    alert('Network error has occurred please try again!');
+                }
+        });
+    }
+
     this.newZoneGroupObjectCallback = function( id )
     {
         console.log( "Add ZG: " + id );
@@ -1353,6 +1443,20 @@ function IrrigationClient()
 
         var handleZGIDUpdate = this.handleZoneGroupsIDUpdate.bind(this);
         this.getObjIDList( "proxy/schedule/zone-groups", "zone-group-list", handleZGIDUpdate );
+    }
+
+    this.getZoneGroup = function( zgid )
+    {
+        // Find the referenced zone group
+        for( index in this.zgObjList )
+        {
+            if( this.zgObjList[index].id == zgid )
+            {
+                return this.zgObjList[index];
+            }
+        }
+
+        return null;
     }
 
     this.getZoneGroupList = function()
@@ -1844,24 +1948,54 @@ function ZoneGroupsUI( clientObj )
 {
     this.clientObj = clientObj;
 
+    // Create a new default zone group
+    this.handleNewZG = function() 
+    { 
+        console.log( "handleNewZG" );
+        this.clientObj.createNewZoneGroup( "newZoneGroup", "" );
+    }
+
     this.ZGACB_deleteGroup = function()
     {
-        console.log("zga: " + this.zgid );
+        var zgID = $( "#zgActionName" ).attr("zgid");
+
+        console.log("zga: " + zgID );
         console.log( "ZGACB_deleteGroup" );
 
-        $( "#zoneGroupAction" ).popup('close');
+        $( "#zgActionPopup" ).popup('close');
 
+        this.clientObj.deleteZoneGroup( zgID );
+    }
 
-        if( this.clientObj != null )
-        {
-            this.clientObj.deleteZoneGroup( this.zgid );
-        }
+    this.ZGACB_NameBlurCB = function( )
+    {
+        console.log( "ZGACB_NameBlurCB" );
 
+        var zgID = $( "#zgActionName" ).attr("zgid");
+        var name = $('#zgun').val();
+
+        console.log( "zg: " + zgID + "  name: " + name );
+
+        this.clientObj.updateZoneGroupName( zgID, name );
+    }
+
+    this.ZGACB_DescBlurCB = function( )
+    {
+        console.log( "ZGACB_DescBlurCB" );
+
+        var zgID = $( "#zgActionName" ).attr("zgid");
+        var desc = $('#zgud').val();
+
+        console.log( "zg: " + zgID + "  desc: " + desc );
+
+        this.clientObj.updateZoneGroupDesc( zgID, desc );
     }
 
     this.ZRACB_AddRuleButton = function() 
     { 
-        console.log("zga: " + this.zgid );
+        var zgid = $( "#zgActionName" ).attr("zgid");
+
+        console.log("zga: " + zgid );
         console.log("Create Rule click");
 
         var zoneID = $( "#azrpZoneSelect option:selected" ).val();
@@ -1872,20 +2006,32 @@ function ZoneGroupsUI( clientObj )
         console.log( "On: " + onSec );
         console.log( "Off: " + offSec );        
       
-        this.clientObj.createNewZoneRule( this.zgid, zoneID, onSec, offSec );
+        this.clientObj.createNewZoneRule( zgid, zoneID, onSec, offSec );
     }
 
-    this.ZRACB_ExitButton = function() 
-    { 
-        console.log("zga: " + this.zgid );
-        console.log("Exit click");
-        $( "#addZoneRulePopup" ).popup('close');
-    }
-
-    this.ZGACB_displayAddRule = function()
+    this.ZGACB_deleteRuleButton = function( )
     {
-        console.log("zga: " + this.zgid );
-        console.log( "ZGACB_displayAddZoneRule" );
+        var zgid = $( "#zgActionName" ).attr("zgid");
+
+        console.log( "ZGACB_deleteRuleButton" );
+
+        var zrID = $( "#dzrpRuleSelect option:selected" ).val();
+
+        console.log( "zg: " + zgid + "  zr: " + zrID );
+
+        this.clientObj.deleteZoneRule( zgid, zrID );
+    }
+
+    this.displayZGA = function( zgid )
+    {
+        console.log( "ZGA display: " + zgid );
+
+        // Get a copy of the Schedule Rule object
+        var zgObj = this.clientObj.getZoneGroup( zgid );
+
+        // Set the text fields
+        $( "#zgun" ).val( zgObj.name );
+        $( "#zgud" ).val( zgObj.desc );
 
         // Clear any old rule records
         $( "#azrpZoneSelect" ).empty();
@@ -1908,48 +2054,11 @@ function ZoneGroupsUI( clientObj )
 
         $( "#azrpZoneSelect" ).selectmenu( "refresh", true );
 
-        $( "#addZoneRulePopup" ).popup('open');
-        $( "#zoneGroupAction" ).off( 'popupafterclose' );
-
-        //console.log( $( "#" + popupIDStr ) );
-
-    }
-
-    this.ZGACB_deleteRuleChange = function( )
-    {
-        console.log( "ZGACB_deleteRuleChange" );
-
-    }
-
-    this.ZGACB_deleteRuleButton = function( )
-    {
-        console.log( "ZGACB_deleteRuleButton" );
-
-        var zgID = this.zgid;
-
-        var zrID = $( "#dzrpRuleSelect option:selected" ).val();
-
-        console.log( "zg: " + zgID + "  zr: " + zrID );
-
-        this.clientObj.deleteZoneRule( zgID, zrID );
-    }
-
-    this.ZGACB_deleteRuleExit = function( )
-    {
-        console.log( "ZGACB_deleteRuleExit" );
-
-        $( "#deleteZoneRulePopup" ).popup('close');
-    }
-
-    this.ZGACB_displayDeleteRule = function()
-    {
-        console.log( "ZGACB_displayDeleteRule: " + this.zgid );
-
         // Clear any old rule records
         $( "#dzrpRuleSelect" ).empty();
 
         // Fill the select element with the list of rules
-        var zoneRuleList = this.clientObj.getZoneRuleList( this.zgid );
+        var zoneRuleList = this.clientObj.getZoneRuleList( zgid );
 
         console.log( zoneRuleList );
 
@@ -1966,78 +2075,37 @@ function ZoneGroupsUI( clientObj )
 
         $( "#dzrpRuleSelect" ).selectmenu( "refresh", true );
 
-        $( "#deleteZoneRulePopup" ).popup('open');
-        $( "#zoneGroupAction" ).off( 'popupafterclose' );
-    }
+        // Update the rule identity
+        $("#zgActionName").attr('zgid', zgid);
+        $("#zgActionName").html( zgid );
 
-    this.displayZGA = function( zgid )
-    {
-        console.log( "ZGA display: " + zgid );
-
-        this.zgid = zgid;
-
-        $( "#zoneGroupAction" ).popup('open');
-    }
-
-    // catch the form's submit event
-    this.handleNewZG = function( e ) 
-    { 
-        e.preventDefault();
-
-        this.clientObj.createNewZoneGroup( $('#zgn').val(), $('#zgd').val() );
-
-        $( "#popupZGAdd" ).popup( 'close' );
-
-        return false; // cancel original event to prevent form submitting
+        $( "#zgActionPopup" ).popup('open');
     }
 
     this.initEventHandlers = function()
     {
         // Zone Group Actions
+        $( "#zgAddButton" ).off("click");
+        var zgAddCB = this.handleNewZG.bind(this);
+        $( "#zgAddButton" ).on( "click", zgAddCB );
+
         $( "#zgaDelete" ).off("click");
-
         var zgDeleteCB = this.ZGACB_deleteGroup.bind(this);
-
         $( "#zgaDelete" ).on( "click", zgDeleteCB );
-
-        var zgNewRuleCB = this.ZGACB_displayAddRule.bind(this);
-
-        $( "#zgaNewRule" ).on("click", function() 
-        {
-            $( "#zoneGroupAction" ).off( 'popupafterclose' );
-            $( "#zoneGroupAction" ).on( 'popupafterclose', function() { zgNewRuleCB(); } );
-            $( "#zoneGroupAction" ).popup('close');
-        });
 
         var azrpCreateRuleCB = this.ZRACB_AddRuleButton.bind(this);
         $( "#azrpCreateRule" ).on( "click", azrpCreateRuleCB );
 
-        var azrpExitCB = this.ZRACB_ExitButton.bind(this);
-        $( "#azrpDone" ).on( "click", azrpExitCB );
-
-
-        var zgDeleteRuleCB = this.ZGACB_displayDeleteRule.bind(this);
-
-        $( "#zgaDeleteRule" ).on("click", function() 
-        {
-            $( "#zoneGroupAction" ).off( 'popupafterclose' );
-            $( "#zoneGroupAction" ).on( 'popupafterclose', function() { zgDeleteRuleCB(); } );
-            $( "#zoneGroupAction" ).popup('close');
-        });
-
-        // Delete Zone Rule Popup
-        var zrChangeRuleCB = this.ZGACB_deleteRuleChange.bind(this);
-        $( "#dzrpRuleSelect" ).on( 'change', zrChangeRuleCB );
-
         var zrDeleteRuleButtonCB = this.ZGACB_deleteRuleButton.bind(this);
         $( "#dzrpDeleteRule" ).on( "click", zrDeleteRuleButtonCB );
 
-        var zrExitCB = this.ZGACB_deleteRuleExit.bind(this);
-        $( "#dzrpDone" ).on( "click", zrExitCB );
+        $( "#zgun" ).off( "blur" );
+        var zgNameBlurCB = this.ZGACB_NameBlurCB.bind(this);
+        $( "#zgun" ).on( "blur", zgNameBlurCB );
 
-        var submitCB = this.handleNewZG.bind(this);
-
-        $("#zgAddForm").on('submit', submitCB );
+        $( "#zgud" ).off( "blur" );
+        var zgDescBlurCB = this.ZGACB_DescBlurCB.bind(this);
+        $( "#zgud" ).on( "blur", zgDescBlurCB );
 
     }
 

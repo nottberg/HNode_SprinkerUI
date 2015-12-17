@@ -276,7 +276,7 @@
             </div>
 
             <ul id="zgListview" data-role="listview" data-split-icon="bars" data-plit-theme="a" data-inset="true">
-                <li data-icon="plus" data-theme="b" ><a href="#"><h2>Zone Groups</h2></a><a href="#popupZGAdd" data-rel="popup" data-theme="b">New Zone Group</a></li>
+                <li data-icon="plus" data-theme="b" ><a href="#"><h2>Zone Groups</h2></a><a href="#" id="zgAddButton" data-theme="b">New Zone Group</a></li>
             </ul>
         </div><!-- /content -->
  
@@ -298,59 +298,46 @@
             </ul>
         </div>
 
-        <div data-role="popup" id="popupZGAdd" data-theme="a">
-            <form id="zgAddForm" data-ajax="false">
-                <div style="padding:10px 20px;">
-                    <h3>Create New Zone Group</h3>
-                    <label for="zgn" class="ui-hidden-accessible">Name:</label>
-                    <input type="text" name="zgname" id="zgn" value="" placeholder="Name">
-                    <label for="zgd" class="ui-hidden-accessible">Description:</label>
-                    <input type="text" name="zgdesc" id="zgd" value="" placeholder="Description">
-                    <button type="submit" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Create</button>
+        <div data-role="popup" id="zgActionPopup" data-transition="pop">
+            <h3>Zone Group Actions: <div id="zgActionName">testZG<div></h3>
+            <div data-role="collapsibleset" data-theme="a" data-content-theme="a">
+
+                <div data-role="collapsible">
+                    <h3>Update Zone Group</h3>
+                    <p>Update Name, Description</p>
+                    <label for="zgun" class="ui-hidden-accessible">Name:</label>
+                    <input type="text" name="zgname" id="zgun" value="" placeholder="Name">
+                    <label for="zgud" class="ui-hidden-accessible">Description:</label>
+                    <input type="text" name="zgdesc" id="zgud" value="" placeholder="Description">
                 </div>
-            </form>
-        </div>
 
-        <div data-role="popup" id="srChangeZoneGroupPopup" data-transition="pop">
-            <p>Example Text</p>
-            <select name="srczg_select" id="srZoneGroupSelect">
-            </select>
-            <a id="srChangeZoneGroup" href="#" class="ui-btn ui-corner-all">Done</a>
-        </div>
+                <div data-role="collapsible">
+                    <h3>Add Zone Rule</h3>
+                    <p>Select a Zone</p>
+                    <select name="zone_select" id="azrpZoneSelect">
+                    </select>
+                    <p>Set the "On" duration</p>
+                    <div class="ui-field-contain">
+                        <input id="azrpOnDuration" type="text" data-role="datebox" data-options='{"mode":"durationbox", "useInline":true, "useSetButton":false, "hideInput":true, "defaultValue":120}'/>
+                    </div>
+                    <a id="azrpCreateRule" href="#" class="ui-btn ui-corner-all">Create Rule</a>
+                </div>
 
-        <div id="zoneGroupAction" data-role="popup" data-transition="pop">
-            <ul data-role="listview" data-inset="true" >
-                <li data-role="list-divider">Choose an Action</li>
-                <li><a id="zgaDelete" href="#">Delete Zone Group</a></li>
-                <li><a id="zgaNewRule" href="#">New Zone Rule</a></li>
-                <li><a id="zgaDeleteRule" href="#">Delete Zone Rule</a></li>
-            </ul>
-        </div>
+                <div data-role="collapsible">
+                    <h3>Delete Zone Rule</h3>
+                    <p>Example Text</p>
+                    <select name="dzrp_select" id="dzrpRuleSelect">
+                    </select>
+                    <a id="dzrpDeleteRule" href="#" class="ui-btn ui-corner-all">Delete Rule</a>
+                </div>
 
-        <div data-role="popup" id="addZoneRulePopup" data-transition="pop">
-            <p>Select a Zone</p>
-            <select name="zone_select" id="azrpZoneSelect">
-            </select>
-            <p>Set the "On" duration</p>
-            <div class="ui-field-contain">
-                <input id="azrpOnDuration" type="text" data-role="datebox" data-options='{"mode":"durationbox", "useInline":true, "useSetButton":false, "hideInput":true, "defaultValue":120}'/>
+                <div data-role="collapsible">
+                    <h3>Delete Zone Group</h3>
+                    <p>Delete this zone group?</p>
+                    <a href="#" id="zgaDelete" class="ui-btn ui-corner-all">Confirm Delete</a>
+                </div>
+
             </div>
-<!--
-            <p>Set the "Off" duration</p>
-            <div class="ui-field-contain">
-                <input id="azrpOffDuration" type="text" data-role="datebox" data-options='{"mode":"durationbox", "useInline":true, "useSetButton":false, "hideInput":true}'/>
-            </div>
--->
-            <a id="azrpCreateRule" href="#" class="ui-btn ui-corner-all">Create Rule</a>
-            <a id="azrpDone" href="#" class="ui-btn ui-corner-all">Done</a>
-        </div>
-
-        <div data-role="popup" id="deleteZoneRulePopup" data-transition="pop">
-            <p>Example Text</p>
-            <select name="dzrp_select" id="dzrpRuleSelect">
-            </select>
-            <a id="dzrpDeleteRule" href="#" class="ui-btn ui-corner-all">Delete Rule</a>
-            <a id="dzrpDone" href="#" class="ui-btn ui-corner-all">Done</a>
         </div>
 
     </div><!-- /page -->
