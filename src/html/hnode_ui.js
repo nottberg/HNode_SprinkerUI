@@ -1526,6 +1526,96 @@ function IrrigationClient()
         this.deleteRESTObject( url, zrid, completeCallback );
     }
 
+    this.updateTriggerGroupName = function( tgID, name )
+    {
+        var putData = '<schedule-trigger-group>';
+        putData += '<name>' + name + '</name>';
+        putData += '</schedule-trigger-group>';
+
+        var putURL = 'proxy/schedule/trigger-groups/' + tgID;
+
+        var completeCallback = this.updateZoneGroups.bind(this);
+
+        console.log( 'Ajax put: ' + putData );
+
+        // Send data to server through the Ajax call
+        // action is functionality we want to call and outputJSON is our data
+        $.ajax({url: putURL,
+                data: putData,
+                type: 'put',                   
+                async: 'true',
+                contentType: 'application/xml',
+                dataType: 'xml',
+                beforeSend: function()
+                {
+                    // This callback function will trigger before data is sent
+                    $.mobile.loading( 'show' );
+                },
+                complete: function() 
+                {
+                    // This callback function will trigger on data sent/received complete
+                    $.mobile.loading( 'hide' ); // This will hide ajax spinner
+                },
+                success: function( data, textStatus, jqXHR ) 
+                {
+                    console.log( "Put Done: " + textStatus );
+                    console.log( jqXHR.getAllResponseHeaders() );
+
+                    completeCallback();                         
+                },
+                error: function( request, error ) 
+                {
+                    // This callback function will trigger on unsuccessful action                
+                    alert('Network error has occurred please try again!');
+                }
+        });
+    }
+
+    this.updateTriggerGroupDesc = function( tgID, desc )
+    {
+        var putData = '<schedule-trigger-group>';
+        putData += '<desc>' + desc + '</desc>';
+        putData += '</schedule-trigger-group>';
+
+        var putURL = 'proxy/schedule/trigger-groups/' + tgID;
+
+        var completeCallback = this.updateZoneGroups.bind(this);
+
+        console.log( 'Ajax put: ' + putData );
+
+        // Send data to server through the Ajax call
+        // action is functionality we want to call and outputJSON is our data
+        $.ajax({url: putURL,
+                data: putData,
+                type: 'put',                   
+                async: 'true',
+                contentType: 'application/xml',
+                dataType: 'xml',
+                beforeSend: function()
+                {
+                    // This callback function will trigger before data is sent
+                    $.mobile.loading( 'show' );
+                },
+                complete: function() 
+                {
+                    // This callback function will trigger on data sent/received complete
+                    $.mobile.loading( 'hide' ); // This will hide ajax spinner
+                },
+                success: function( data, textStatus, jqXHR ) 
+                {
+                    console.log( "Put Done: " + textStatus );
+                    console.log( jqXHR.getAllResponseHeaders() );
+
+                    completeCallback();                         
+                },
+                error: function( request, error ) 
+                {
+                    // This callback function will trigger on unsuccessful action                
+                    alert('Network error has occurred please try again!');
+                }
+        });
+    }
+
     this.newTriggerGroupObjectCallback = function( id )
     {
         console.log( "Add TG: " + id );
@@ -1550,6 +1640,20 @@ function IrrigationClient()
 
         var handleTGIDUpdate = this.handleTriggerGroupsIDUpdate.bind(this);
         this.getObjIDList( "proxy/schedule/trigger-groups", "trigger-group-list", handleTGIDUpdate );
+    }
+
+    this.getTriggerGroup = function( tgid )
+    {
+        // Find the referenced zone group
+        for( index in this.tgObjList )
+        {
+            if( this.tgObjList[index].id == tgid )
+            {
+                return this.tgObjList[index];
+            }
+        }
+
+        return null;
     }
 
     this.getTriggerGroupList = function()
@@ -2189,6 +2293,43 @@ function TriggerGroupsUI( clientObj )
 {
     this.clientObj = clientObj;
 
+    this.TGACB_deleteGroup = function()
+    {
+        var tgID = $( "#tgActionName" ).attr("tgid");
+
+        console.log("tga: " + tgID );
+        console.log( "TGACB_deleteGroup" );
+
+        $( "#tgActionPopup" ).popup('close');
+
+        this.clientObj.deleteTriggerGroup( tgID );
+    }
+
+    this.TGACB_NameBlurCB = function( )
+    {
+        console.log( "TGACB_NameBlurCB" );
+
+        var tgID = $( "#tgActionName" ).attr("tgid");
+        var name = $('#tgun').val();
+
+        console.log( "tg: " + tgID + "  name: " + name );
+
+        this.clientObj.updateTriggerGroupName( tgID, name );
+    }
+
+    this.TGACB_DescBlurCB = function( )
+    {
+        console.log( "TGACB_DescBlurCB" );
+
+        var tgID = $( "#tgActionName" ).attr("tgid");
+        var desc = $('#tgud').val();
+
+        console.log( "tg: " + tgID + "  desc: " + desc );
+
+        this.clientObj.updateTriggerGroupDesc( tgID, desc );
+    }
+
+
     this.TGACB_updateTROpStr = function()
     {
         var date   = $( "#atrpCalBox" ).datebox('getTheDate');
@@ -2209,7 +2350,8 @@ function TriggerGroupsUI( clientObj )
     { 
         if( passed.method == 'set' )
         {
-            console.log("CalListen: " + this.tgid );
+            var tgID = $( "#tgActionName" ).attr("tgid");
+            console.log("CalListen: " + tgID );
             this.TGACB_updateTROpStr();
         }
     }
@@ -2218,22 +2360,27 @@ function TriggerGroupsUI( clientObj )
     { 
         if( passed.method == 'offset' )
         {
-            console.log("TimeListen: " + this.tgid );
+            var tgID = $( "#tgActionName" ).attr("tgid");
+            console.log("TimeListen: " + tgID );
             this.TGACB_updateTROpStr();
         }
     }
 
     this.TGACB_ScopeChange = function( event, ui ) 
     { 
-        console.log("tga: " + this.tgid );
+        var tgID = $( "#tgActionName" ).attr("tgid");
+
+        console.log("tga: " + tgID );
         console.log( "ScopeChange" ); 
         console.log( $( "#atrpScopeSelect option:selected" ).attr("value") );
         this.TGACB_updateTROpStr();
     }
 
     this.TGACB_AddRuleButton = function() 
-    { 
-        console.log("tga: " + this.tgid );
+    {
+        var tgID = $( "#tgActionName" ).attr("tgid");
+ 
+        console.log("tga: " + tgID );
         console.log("Create Rule click");
 
         var date   = $( "#atrpCalBox" ).datebox('getTheDate');
@@ -2244,64 +2391,14 @@ function TriggerGroupsUI( clientObj )
         date.setMinutes( time.getMinutes() );
         date.setSeconds( time.getSeconds() );
         
-        this.clientObj.createNewTriggerRule( this.tgid, "time", scope, date );
-    }
-
-    this.TGACB_ExitButton = function() 
-    { 
-        console.log("tga: " + this.tgid );
-        console.log("Exit click");
-        $( "#addTriggerRulePopup" ).popup('close');
-    }
-
-    this.TGACB_deleteGroup = function()
-    {
-        console.log("tga: " + this.tgid );
-        console.log( "TGACB_deleteGroup" );
-
-        $( "#triggerGroupAction" ).popup('close');
-
-/*
-        if( this.clientObj != null )
-        {
-            this.clientObj.deleteTriggerGroup( this.id );
-        }
-*/
-    }
-
-    this.TGACB_displayAddRule = function()
-    {
-        console.log("tga: " + this.tgid );
-        console.log( "TGACB_displayAddTriggerRule" );
-
-        $( "#addTriggerRulePopup" ).popup('open');
-        $( "#triggerGroupAction" ).off( 'popupafterclose' );
-
-        //console.log( $( "#" + popupIDStr ) );
-
-    }
-
-    this.displayTGA = function( tgid )
-    {
-        console.log( "TGA display: " + tgid );
-
-        this.tgid = tgid;
-
-        $( "#triggerGroupAction" ).popup('open');
-    }
-
-    this.TGACB_deleteRuleChange = function( )
-    {
-        console.log( "TGACB_deleteRuleChange" );
-
+        this.clientObj.createNewTriggerRule( tgID, "time", scope, date );
     }
 
     this.TGACB_deleteRuleButton = function( )
     {
         console.log( "TGACB_deleteRuleButton" );
 
-        var tgID = this.tgid;
-
+        var tgID = $( "#tgActionName" ).attr("tgid");
         var trID = $( "#dtrpRuleSelect option:selected" ).val();
 
         console.log( "tg: " + tgID + "  tr: " + trID );
@@ -2309,23 +2406,23 @@ function TriggerGroupsUI( clientObj )
         this.clientObj.deleteTriggerRule( tgID, trID );
     }
 
-    this.TGACB_deleteRuleExit = function( )
+    this.displayTGA = function( tgid )
     {
-        console.log( "TGACB_deleteRuleExit" );
+        console.log( "TGA display: " + tgid );
 
-        $( "#deleteTriggerRulePopup" ).popup('close');
-    }
+        // Get a copy of the Schedule Rule object
+        var tgObj = this.clientObj.getTriggerGroup( tgid );
 
-    this.TGACB_displayDeleteRule = function()
-    {
-        //console.log("tga: " + this.curTGObj.id );
-        console.log( "TGACB_displayDeleteRule" );
+        // Set the text fields
+        $( "#tgun" ).val( tgObj.name );
+        $( "#tgud" ).val( tgObj.desc );
 
+        // Initialize the rule delete selection box.
         // Clear any old rule records
         $( "#dtrpRuleSelect" ).empty();
 
         // Fill the select element with the list of rules
-        var triggerRuleList = this.clientObj.getTriggerRuleList( this.tgid );
+        var triggerRuleList = this.clientObj.getTriggerRuleList( tgid );
 
         console.log( triggerRuleList );
 
@@ -2342,59 +2439,47 @@ function TriggerGroupsUI( clientObj )
 
         $( "#dtrpRuleSelect" ).selectmenu( "refresh", true );
 
-        $( "#deleteTriggerRulePopup" ).popup('open');
-        $( "#triggerGroupAction" ).off( 'popupafterclose' );
+        // Do an initial update of the Representative Rule string
+        this.TGACB_updateTROpStr();
+
+        // Update the rule identity
+        $("#tgActionName").attr('tgid', tgid);
+        $("#tgActionName").html( tgid );
+
+        $( "#tgActionPopup" ).popup('open');
     }
 
     // catch the form's submit event
-    this.handleNewTG = function( e ) 
+    this.handleNewTG = function() 
     { 
-        e.preventDefault();
-
-        this.clientObj.createNewTriggerGroup( $('#tgn').val(), $('#tgd').val() );
-
-        $( "#popupTGAdd" ).popup( 'close' );
-
-        return false; // cancel original event to prevent form submitting
+        this.clientObj.createNewTriggerGroup( "New Trigger Group", "" );
     }
 
     this.initEventHandlers = function()
     {
-        // Trigger Group Actions
+        // Zone Group Actions
+        $( "#tgAddButton" ).off("click");
+        var tgAddCB = this.handleNewTG.bind(this);
+        $( "#tgAddButton" ).on( "click", tgAddCB );
+
         $( "#tgaDelete" ).off("click");
-        $( "#tgaNewRule" ).off("click");
-        $( "#tgaDeleteRule" ).off("click");
-
         var tgDeleteCB = this.TGACB_deleteGroup.bind(this);
-
         $( "#tgaDelete" ).on( "click", tgDeleteCB );
 
-        var newRuleCB = this.TGACB_displayAddRule.bind(this);
+        $( "#tgun" ).off( "blur" );
+        var tgNameBlurCB = this.TGACB_NameBlurCB.bind(this);
+        $( "#tgun" ).on( "blur", tgNameBlurCB );
 
-        $( "#tgaNewRule" ).on("click", function() 
-        {
-            $( "#triggerGroupAction" ).off( 'popupafterclose' );
-            $( "#triggerGroupAction" ).on( 'popupafterclose', function() { newRuleCB(); } );
-            $( "#triggerGroupAction" ).popup('close');
-        });
+        $( "#tgud" ).off( "blur" );
+        var tgDescBlurCB = this.TGACB_DescBlurCB.bind(this);
+        $( "#tgud" ).on( "blur", tgDescBlurCB );
 
-        var deleteRuleCB = this.TGACB_displayDeleteRule.bind(this);
+        var deleteRuleButtonCB = this.TGACB_deleteRuleButton.bind(this);
+        $( "#dtrpDeleteRule" ).on( "click", deleteRuleButtonCB );
 
+        var createRuleCB = this.TGACB_AddRuleButton.bind(this);
+        $( "#atrpCreateRule" ).on( "click", createRuleCB );
 
-        $( "#tgaDeleteRule" ).on("click", function() 
-        {
-            $( "#triggerGroupAction" ).off( 'popupafterclose' );
-            $( "#triggerGroupAction" ).on( 'popupafterclose', function() { deleteRuleCB(); } );
-            $( "#triggerGroupAction" ).popup('close');
-        });
-
-        // New Trigger Rule Popup
-        $( "#atrpCalBox" ).unbind( 'datebox' );
-        $( "#atrpDateBox" ).unbind( 'datebox' );
-        //$( "#atrpScopeSelect" ).off( 'change' );
-        $( "#atrpCreateRule" ).off( "click" );
-        $( "#atrpDone" ).off( "click" );
-  
         var calUpdateCB = this.TGACB_CalBoxUpdate.bind(this);
         $( "#atrpCalBox" ).bind( 'datebox', calUpdateCB );
 
@@ -2404,25 +2489,6 @@ function TriggerGroupsUI( clientObj )
         var scopeChangeCB = this.TGACB_ScopeChange.bind(this);
         $( "#atrpScopeSelect" ).on( 'change', scopeChangeCB );
 
-        var createRuleCB = this.TGACB_AddRuleButton.bind(this);
-        $( "#atrpCreateRule" ).on( "click", createRuleCB );
-
-        var exitCB = this.TGACB_ExitButton.bind(this);
-        $( "#atrpDone" ).on( "click", exitCB );
-
-        // Delete Trigger Rule Popup
-        var changeRuleCB = this.TGACB_deleteRuleChange.bind(this);
-        $( "#dtrpRuleSelect" ).on( 'change', changeRuleCB );
-
-        var deleteRuleButtonCB = this.TGACB_deleteRuleButton.bind(this);
-        $( "#dtrpDeleteRule" ).on( "click", deleteRuleButtonCB );
-
-        var exitCB = this.TGACB_deleteRuleExit.bind(this);
-        $( "#dtrpDone" ).on( "click", exitCB );
-
-        var submitCB = this.handleNewTG.bind(this);
-
-        $("#tgAddForm").on('submit', submitCB );
     }
 
     this.refreshAll = function()

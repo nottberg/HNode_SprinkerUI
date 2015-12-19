@@ -275,7 +275,7 @@
             <div id="zgContent">
             </div>
 
-            <ul id="zgListview" data-role="listview" data-split-icon="bars" data-plit-theme="a" data-inset="true">
+            <ul id="zgListview" data-role="listview" data-split-icon="bars" data-split-theme="a" data-inset="true">
                 <li data-icon="plus" data-theme="b" ><a href="#"><h2>Zone Groups</h2></a><a href="#" id="zgAddButton" data-theme="b">New Zone Group</a></li>
             </ul>
         </div><!-- /content -->
@@ -354,8 +354,8 @@
             <div id="tgContent">
             </div>
 
-            <ul id="tgListview" data-role="listview" data-split-icon="bars" data-plit-theme="a" data-inset="true">
-                <li data-icon="plus" data-theme="b" ><a href="#"><h2>Trigger Groups</h2></a><a href="#popupTGAdd" data-rel="popup" data-theme="b">New Trigger Group</a></li>
+            <ul id="tgListview" data-role="listview" data-split-icon="bars" data-split-theme="a" data-inset="true">
+                <li data-icon="plus" data-theme="b" ><a href="#"><h2>Trigger Groups</h2></a><a href="#" id="tgAddButton" data-theme="b">New Trigger Group</a></li>
             </ul>
 
         </div><!-- /content -->
@@ -378,6 +378,63 @@
             </ul>
         </div>
 
+        <div data-role="popup" id="tgActionPopup" data-transition="pop">
+            <h3>Trigger Group Actions: <div id="tgActionName">testTG<div></h3>
+            <div data-role="collapsibleset" data-theme="a" data-content-theme="a">
+
+                <div data-role="collapsible">
+                    <h3>Update Trigger Group</h3>
+                    <p>Update Name, Description</p>
+                    <label for="tgun" class="ui-hidden-accessible">Name:</label>
+                    <input type="text" name="tgname" id="tgun" value="" placeholder="Name">
+                    <label for="tgud" class="ui-hidden-accessible">Description:</label>
+                    <input type="text" name="tgdesc" id="tgud" value="" placeholder="Description">
+                </div>
+
+                <div data-role="collapsible">
+                    <h3>Add Trigger Rule</h3>
+                    <p>Select Reoccurence Behavior</p>
+                    <select name="scope_select" id="atrpScopeSelect">
+                        <option value="once">Once</option>
+                        <option value="second">Second</option>
+                        <option value="minute">Minute</option>
+                        <option value="hour">Hour</option>
+                        <option value="day">Day</option>
+                        <option value="week">Week</option>
+                        <option value="even_week">Even Week</option>
+                        <option value="odd_week">Odd Week</option>
+                        <option value="month">Month</option>
+                        <option value="year">Year</option>
+                    </select>
+                    <p>Pick a representative date</p>
+                    <div class="ui-field-contain">
+                        <input id="atrpCalBox" type="text" data-role="datebox" data-options='{"mode":"calbox", "useInline":true, "hideInput":true}'/>
+                    </div>
+                    <p>Pick a time</p>
+                    <div class="ui-field-contain">
+                        <input id="atrpDateBox" type="text" data-role="datebox" data-options='{"mode":"timebox", "useInline":true, "useSetButton":false, "hideInput":true}'/>
+                    </div>
+                    <p id="atrpDateStr">Example Rule</p>
+                    <a id="atrpCreateRule" href="#" class="ui-btn ui-corner-all">Create Rule</a>
+                </div>
+
+                <div data-role="collapsible">
+                    <h3>Delete Trigger Rule</h3>
+                    <p>Select Rule for Delete</p>
+                    <select name="dtrp_select" id="dtrpRuleSelect">
+                    </select>
+                    <a id="dtrpDeleteRule" href="#" class="ui-btn ui-corner-all">Delete Rule</a>
+                </div>
+
+                <div data-role="collapsible">
+                    <h3>Delete Trigger Group</h3>
+                    <p>Delete this trigger group?</p>
+                    <a href="#" id="tgaDelete" class="ui-btn ui-corner-all">Confirm Delete</a>
+                </div>
+
+            </div>
+        </div>
+<!--
         <div data-role="popup" id="popupTGAdd" data-theme="a">
             <form id="tgAddForm" data-ajax="false">
                 <div style="padding:10px 20px;">
@@ -439,7 +496,7 @@
             <a id="dtrpDeleteRule" href="#" class="ui-btn ui-corner-all">Delete Rule</a>
             <a id="dtrpDone" href="#" class="ui-btn ui-corner-all">Done</a>
         </div>
-
+-->
 
     </div><!-- /page -->
 
