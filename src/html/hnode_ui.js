@@ -611,26 +611,21 @@ function PastScheduleLogEntry()
     this.msg    = "";
     this.seqnum = 0;
     this.tstamp = new Date();
+}
 
-/*
-    this.setFromGenObj = function( genObj )
-    {   
-        console.log( "setFromGenObj" );
-
-        this.id       = genObj.getField('id');
-        this.type     = genObj.getField('type');
-        this.scope    = genObj.getField('scope');
-
-        var refTime = genObj.getField( 'reftime' );
-
-        var expTime = refTime.substring(0, 4) + "-" + refTime.substring(4, 6) + "-" + refTime.substring(6,8);
-        expTime += "T";
-        expTime += refTime.substring(9, 11) + ":" + refTime.substring(11, 13) + ":" + refTime.substring(13, 15);
-
-        this.reftime  = new Date( Date.parse( expTime ) );
-    }
-*/
-
+// Hold the data for a calendar entry
+function CalendarEntry()
+{
+    this.erID     = "";
+    this.tgID     = "";
+    this.trID     = "";
+    this.zgID     = "";
+    this.tgName   = "";
+    this.zoneName = "";
+    this.duration = "";
+    
+    this.startTime = new Date();
+    this.endTime   = new Date();
 }
 
 // Create the base irrigation client object
@@ -1782,6 +1777,191 @@ function IrrigationClient()
         });
     }
 
+
+    this.getCalendar = function( periodStr, listCallback )
+    {
+        var url = 'proxy/schedule/calendar/';
+
+        var ts = new Date();
+
+        ts.setHours( 0, 0, 0, 0 );
+        console.log( ts );
+
+        startTime = formatRestUTCDate( ts );
+        console.log( startTime );
+
+        if( periodStr == "day" )
+        {
+            var od = new Date( ts.valueOf() );
+            od.setHours( 23, 59, 59, 0 );
+            console.log( od );
+
+            endTime = formatRestUTCDate( od );
+            console.log( endTime );
+        } 
+        else if( periodStr == "week" )
+        {
+            var od = new Date( ts.valueOf() );
+            od.setDate( od.getDate() + 6 );
+            od.setHours( 23, 59, 59, 0 );
+            console.log( od );
+
+            endTime = formatRestUTCDate( od );
+            console.log( endTime );
+        }
+        else if( periodStr == "twoweek" )
+        {
+            var od = new Date( ts.valueOf() );
+            od.setDate( od.getDate() + 13 );
+            od.setHours( 23, 59, 59, 0 );
+            console.log( od );
+
+            endTime = formatRestUTCDate( od );
+            console.log( endTime );
+        }
+        else if( periodStr == "month" )
+        {
+            var firstDay = new Date( ts.getFullYear(), ts.getMonth(), 1 );
+            startTime = formatRestUTCDate( firstDay );
+            console.log( startTime );
+
+            var lastDay = new Date( ts.getFullYear(), ts.getMonth() + 1, 0 );
+            lastDay.setHours( 23, 59, 59, 0 );
+            console.log( lastDay );
+
+            endTime = formatRestUTCDate( lastDay );
+            console.log( endTime );
+        }
+        else
+        {
+            console.log("Requested period is not supported.");
+            return;
+        }
+
+
+        url += "?startTime=" + startTime + "&endTime=" + endTime;
+
+        console.log( url );
+
+        $.get( url, function( data, status ){
+            console.log( "get status: " + status );
+            console.log( "get data: " + data );
+
+            var logList = [];
+            var periodStart = new Date();
+            var periodEnd = new Date();
+
+            if( $( data ).is( "schedule-event-calendar" ) == false )
+            {
+                return;
+            }
+
+            // Parse child elements
+            $( this ).children().each( function( index )
+            {
+                switch( $(this).prop( "nodeName" ).toLowerCase() )
+                {
+                    case 'period-start':
+                        var refTime = $(this).text();
+
+                        var expTime = refTime.substring(0, 4) + "-" + refTime.substring(4, 6) + "-" + refTime.substring(6,8);
+                        expTime += "T";
+                        expTime += refTime.substring(9, 11) + ":" + refTime.substring(11, 13) + ":" + refTime.substring(13, 15);
+
+                        periodStart = new Date( Date.parse( expTime ) );
+                    break;
+
+                    case 'period-end':
+                        var refTime = $(this).text();
+
+                        var expTime = refTime.substring(0, 4) + "-" + refTime.substring(4, 6) + "-" + refTime.substring(6,8);
+                        expTime += "T";
+                        expTime += refTime.substring(9, 11) + ":" + refTime.substring(11, 13) + ":" + refTime.substring(13, 15);
+
+                        periodEnd = new Date( Date.parse( expTime ) );
+                    break;
+                }
+            });
+
+            $( data ).find('event').each( function( index ){
+
+                var entry = new CalendarEntry();
+
+                // Parse child elements
+                $( this ).children().each( function( index )
+                {
+                    switch( $(this).prop( "nodeName" ).toLowerCase() )
+                    {
+                        case 'id':
+                            entry.id = $(this).text();
+                        break;
+
+                        case 'erid':
+                            entry.erID = $(this).text();
+                        break;
+
+                        case 'tgid':
+                            entry.tgID = $(this).text();
+                        break;
+
+                        case 'trid':
+                            entry.trID = $(this).text();
+                        break;
+
+                        case 'zgid':
+                            entry.zgID = $(this).text();
+                        break;
+
+                        case 'zrid':
+                             entry.zrID = $(this).text();
+                        break;
+
+                        case 'trigger-name':
+                             entry.tgName = $(this).text();
+                        break;
+
+                        case 'zone-name':
+                             entry.zoneName = $(this).text();
+                        break;
+
+                        case 'duration':
+                             entry.duration = $(this).text();
+                        break;
+
+                        case 'start-time':
+                            var refTime = $(this).text();
+
+                            var expTime = refTime.substring(0, 4) + "-" + refTime.substring(4, 6) + "-" + refTime.substring(6,8);
+                            expTime += "T";
+                            expTime += refTime.substring(9, 11) + ":" + refTime.substring(11, 13) + ":" + refTime.substring(13, 15);
+
+                            entry.startTime = new Date( Date.parse( expTime ) );
+                        break;
+
+                        case 'end-time':
+                             var refTime = $(this).text();
+
+                             var expTime = refTime.substring(0, 4) + "-" + refTime.substring(4, 6) + "-" + refTime.substring(6,8);
+                             expTime += "T";
+                             expTime += refTime.substring(9, 11) + ":" + refTime.substring(11, 13) + ":" + refTime.substring(13, 15);
+
+                             entry.endTime = new Date( Date.parse( expTime ) );
+                         break;
+                    }    
+
+                });
+
+                logList.push( entry );
+
+            });
+   
+            console.log( logList );
+
+            // Make a callback with the list
+            listCallback( periodStart, periodEnd, logList );
+        });
+    }
+
     this.debugPrint = function()
     {
         var debugStr = "Hi";
@@ -1991,6 +2171,46 @@ function ScheduleRuleUI( clientObj )
             Item  = '<li class="' + delClassStr + '"><a href="#">';
             Item += '<h3 class="ui-bar ui-bar-a">' + srObj.name + '</h3>';
             Item += '<div class="ui-body">';
+
+            Item += '<p>'+ srObj.desc +'</p>';
+
+            Item += '<div class=\"rbox\">';
+            Item += '<h4>' + 'Zone Durations' + '</h4><hr/>';
+
+            var zrList = clientObj.getZoneRuleList( srObj.zgID );
+
+            console.log("Zone Rule List");
+            console.log(zrList);
+
+            Item += '<ul>';
+
+            for( index in zrList )
+            {
+                Item += '<li><p>'+ zrList[ index ].getRuleDisplayStr() + '</p></li>';
+            }
+
+            Item += '</ul>';
+            Item += '</div>';
+
+            Item += '<div class=\"rbox\">';
+            Item += '<h4>' + 'Start Times' + '</h4><hr/>';
+
+            var trList = clientObj.getTriggerRuleList( srObj.tgID );
+
+            console.log("Trigger Rule List");
+            console.log(trList);
+
+            Item += '<ul>';
+
+            for( index in trList )
+            {
+                Item += '<li><p>'+ trList[ index ].getRuleDisplayStr() + '</p></li>';
+            }
+
+            Item += '</ul>';
+            Item += '</div>';
+
+/*
             Item += '<table>';
             Item += '<tr><td><p>REST</p></td><td><p>' + idStr + '</p></td></tr>';
             Item += '<tr><td><p>Description</p></td><td><p>'+ srObj.desc +'</p></td></tr>';
@@ -2021,6 +2241,7 @@ function ScheduleRuleUI( clientObj )
 
 
             Item += '</table>';
+*/
             Item += '</div>';
             Item += '</a><a href="#" id="' + idStr + '" >Actions</a></li>';
             $( "#srListview" ).append( Item ).trigger("create");
@@ -2246,8 +2467,7 @@ function ZoneGroupsUI( clientObj )
             Item += '<h2>' + idStr + ": " + zgObj.name + '</h2>';
             Item += '<p>'  + zgObj.desc + '</p>';
         
-            Item += '<table data-role="table" class="ui-responsive">';
-            Item += '<thead><tr><th>id</th><th>Zone ID</th><th>Duration(sec)</th></tr></thead>';
+            Item += '<table>';
             Item += '<tbody>';
 
             // Get a list of zone groups
@@ -2256,7 +2476,7 @@ function ZoneGroupsUI( clientObj )
             for( zrindex in zoneRuleList )
             {
                 var zrObj = zoneRuleList[ zrindex ];
-                Item += '<tr><td>' + zrObj.id + '</td><td>' + zrObj.zoneID + '</td><td>' + zrObj.duration + '</td></tr>';
+                Item += '<tr><td>' + zrObj.getRuleDisplayStr() + '</td></tr>';
             }
 
             Item += '</tbody></table>';
@@ -2523,8 +2743,7 @@ function TriggerGroupsUI( clientObj )
             Item += '<h2>' + idStr + ": " + tgObj.name + '</h2>';
             Item += '<p>'  + tgObj.desc + '</p>';
 
-            Item += '<table data-role="table" class="ui-responsive">';
-            Item += '<thead><tr><th>id</th><th>type</th><th>scope</th><th>time</th></tr></thead>';
+            Item += '<table>';
             Item += '<tbody>';
 
             // Get a list of zone groups
@@ -2533,7 +2752,7 @@ function TriggerGroupsUI( clientObj )
             for( trindex in triggerRuleList )
             {
                 var trObj = triggerRuleList[ trindex ];
-                Item += '<tr><td>' + trObj.id + '</td><td>' + trObj.type + '</td><td>' + trObj.scope + '</td><td>' + trObj.getTimeString() + '</td></tr>';
+                Item += '<tr><td>' + trObj.getRuleDisplayStr() + '</td></tr>';
             }
 
             Item += '</tbody></table>';
@@ -2569,6 +2788,11 @@ function PastScheduleUI( clientObj )
 {
     this.clientObj = clientObj;
 
+    this.onetimeInit = function()
+    {
+        $( "#past-schedule-entry-table" ).DataTable( { columns: [ {title: "Time"}, {title: "Sequence Number"}, {title: "ID"}, {title: "Message"} ] });
+    }
+
     this.initEventHandlers = function()
     {
 
@@ -2578,19 +2802,106 @@ function PastScheduleUI( clientObj )
     {
         console.log( logList );
         
+        var dataSet = [];
+
         for( var i = 0; i < logList.length; i++ )
         {
-            var trHtml = '<tr><td>' + logList[i].tstamp + '</td><td>' + logList[i].seqnum + '</td><td>' + logList[i].id + '</td><td>' + logList[i].msg + '</td></tr>';
-            $( "#past-schedule-entry-table-body" ).append( trHtml );
+              dataSet.push( [ logList[i].tstamp, logList[i].seqnum, logList[i].id, logList[i].msg ] );
         }
 
-        $( "#past-schedule-entry-table" ).table( "rebuild" );
+        var table = $( "#past-schedule-entry-table" ).DataTable();
+        table.clear();
+        table.rows.add(dataSet);
+        table.columns.adjust().draw();
+
     }
 
     this.refreshAll = function()
     {
         var updateCB = this.pastScheduleUpdateCallback.bind(this);
         this.clientObj.getPastScheduleLog( updateCB );
+    }
+
+}
+
+
+// The schedule display UI
+function FutureScheduleUI( clientObj )
+{
+    this.clientObj = clientObj;
+    this.curPeriod = "day";
+
+    this.radioChange = function()
+    {
+        console.log("radioChange");
+
+        var changeFlag = false;
+        var newPeriod  = this.curPeriod;
+
+        $( "#schedule-period-radio-group" ).find( 'input' ).each( function( index ){
+
+            if( $(this)[0].checked == true )
+            {
+                if( $(this).attr('schvalue' ) != newPeriod )
+                {
+                    newPeriod = $(this).attr('schvalue' );
+                    changeFlag = true;
+                    console.log( "Change Period: " + newPeriod );
+                }
+            }
+        });
+
+        if( changeFlag == true )
+        {
+            this.curPeriod = newPeriod;
+            var updateCB = this.calendarUpdateCallback.bind(this);
+            this.clientObj.getCalendar( this.curPeriod, updateCB );
+        }
+    }
+
+    this.onetimeInit = function()
+    {
+        $( "#future-schedule-entry-table" ).DataTable( { columns: [ {title: "Start Time"}, {title: "End Time"}, {title: "Zone"}, {title: "Duration"} ] });
+    }
+
+    this.initEventHandlers = function()
+    {
+        $( "#radio-choice-h-2a" ).off( 'change' );
+        $( "#radio-choice-h-2b" ).off( 'change' );
+        $( "#radio-choice-h-2c" ).off( 'change' );
+        $( "#radio-choice-h-2d" ).off( 'change' );
+        $( "#radio-choice-h-2e" ).off( 'change' );
+
+        var changeCB = this.radioChange.bind(this);
+
+        $( "#radio-choice-h-2a" ).on( 'change', changeCB );
+        $( "#radio-choice-h-2b" ).on( 'change', changeCB );
+        $( "#radio-choice-h-2c" ).on( 'change', changeCB );
+        $( "#radio-choice-h-2d" ).on( 'change', changeCB );
+        $( "#radio-choice-h-2e" ).on( 'change', changeCB );
+    }
+
+    this.calendarUpdateCallback = function( periodStart, periodEnd, logList )
+    {
+        console.log( logList );
+        
+        var dataSet = [];
+
+        for( var i = 0; i < logList.length; i++ )
+        {
+            dataSet.push( [ logList[i].startTime, logList[i].endTime, logList[i].zoneName, logList[i].duration ] );
+        }
+
+        var table = $( "#future-schedule-entry-table" ).DataTable();
+        table.clear();
+        table.rows.add(dataSet);
+        table.columns.adjust().draw();
+    }
+
+    this.refreshAll = function()
+    {
+        var updateCB = this.calendarUpdateCallback.bind(this);
+        this.clientObj.getCalendar( this.curPeriod, updateCB );
     }
 
 }
@@ -2602,6 +2913,7 @@ SRUI = new ScheduleRuleUI( irrClient );
 ZGUI = new ZoneGroupsUI( irrClient );
 TGUI = new TriggerGroupsUI( irrClient );
 PSUI = new PastScheduleUI( irrClient );
+FSUI = new FutureScheduleUI( irrClient );
 
     function parseHNodeDetail( data, status ){
         if( status != 'success' )
@@ -3532,13 +3844,27 @@ PSUI = new PastScheduleUI( irrClient );
 
     });
 
+    $( document ).on( "pageinit", "#scheduleui", function( event ) 
+    {
+        console.log("pageinit scheduleui");
+
+        FSUI.onetimeInit();
+    });
+
+    $( document ).on( "pageinit", "#logui", function( event ) 
+    {
+        console.log("pageinit logui");
+
+        PSUI.onetimeInit();
+    });
+
     $( document ).on( "pageshow", "#scheduleui", function( event ) 
     {
         console.log("pageshow scheduleui");
 
-//        irrUI.initUpcomingScheduleEventHandlers();
+        FSUI.initEventHandlers();
 
-//        irrUI.refreshUpcomingSchedule();
+        FSUI.refreshAll();
     });
 
     $( document ).on( "pageshow", "#logui", function( event ) 

@@ -14,6 +14,8 @@
     <script type="text/javascript" src="http://cdn.jtsage.com/datebox/latest/jqm-datebox.mode.calbox.min.js"></script>
     <script type="text/javascript" src="http://cdn.jtsage.com/datebox/latest/jqm-datebox.mode.datebox.min.js"></script>
     <script type="text/javascript" src="http://cdn.jtsage.com/datebox/i18n/jquery.mobile.datebox.i18n.en_US.utf8.js"></script>
+    <script type="text/javascript" src="http://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/1.10.10/css/jquery.dataTables.min.css">
     <script type='text/javascript' src='hnode_ui.js'></script>
     <style>
         #wrapper {
@@ -24,6 +26,12 @@
         svg {
             position:absolute; 
             background:white
+        }
+        div.rbox {
+            width: 320px;
+            padding: 10px;
+            border: 5px solid gray;
+            margin: 5px;
         }
 
     </style>
@@ -82,18 +90,23 @@
         </div><!-- /header -->
  
         <div data-role="content">
-            <div class="ui-grid-a my-breakpoint" id="zone-content-grid">
-	            <div class="ui-block-a" id="zone-map-block">
-                    <div class="svg-container" id="zone-map-svg"></div>
-                </div>
-	            <div class="ui-block-b">
-                    <form>
-                        <fieldset id="zone-radio-group" data-role="controlgroup">
-                            <legend>Zones:</legend>
-                        </fieldset>
-                    </form>
-                </div><!-- /grid-b -->
-            </div><!-- /zone-grid -->
+            <form>
+                <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true" id="schedule-period-radio-group">
+                    <legend>Time Period:</legend>
+                    <input type="radio" name="radio-choice-h-2" id="radio-choice-h-2a" schvalue="day" value="on" checked="checked" >
+                    <label for="radio-choice-h-2a">Today</label>
+                    <input type="radio" name="radio-choice-h-2" id="radio-choice-h-2b" schvalue="week" value="off" >
+                    <label for="radio-choice-h-2b">Week</label>
+                    <input type="radio" name="radio-choice-h-2" id="radio-choice-h-2c" schvalue="twoweek" value="off" >
+                    <label for="radio-choice-h-2c">Two-Weeks</label>
+                    <input type="radio" name="radio-choice-h-2" id="radio-choice-h-2d" schvalue="month" value="off" >
+                    <label for="radio-choice-h-2d">This Month</label>
+                    <input type="radio" name="radio-choice-h-2" id="radio-choice-h-2e" schvalue="nextmonth" value="off" >
+                    <label for="radio-choice-h-2e">Next Month</label>
+                </fieldset>
+            <form>
+            <hr/>
+            <table id="future-schedule-entry-table" class="display" width="100%"></table>
         </div><!-- /content -->
  
         <div data-role="footer">
@@ -125,18 +138,7 @@
         </div><!-- /header -->
  
         <div data-role="content">
-            <table data-role="table" id="past-schedule-entry-table" data-mode="columntoggle">
-                <thead>
-                    <tr>
-                        <th>Timestamp</th>
-                        <th>Sequence</th>
-                        <th>Type</th>
-                        <th>Message</th>
-                    </tr>
-                </thead>
-                <tbody id="past-schedule-entry-table-body">
-                </tbody>
-            </table>
+            <table id="past-schedule-entry-table" class="display" width="100%"></table>
         </div><!-- /content -->
  
         <div data-role="footer">
