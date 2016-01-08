@@ -2462,6 +2462,35 @@ function ZoneGroupsUI( clientObj )
             // Get rid of any existing UI elements related to this item
             $('.' + delClassStr).remove();
 
+            // 
+            Item  = '<li class="' + delClassStr + '"><a href="#">';
+            Item += '<h3 class="ui-bar ui-bar-a">' + zgObj.name + '</h3>';
+            Item += '<div class="ui-body">';
+
+            Item += '<p>'+ zgObj.desc +'</p>';
+
+            Item += '<div class=\"rbox\">';
+            Item += '<h4>' + 'Zone Durations' + '</h4><hr/>';
+
+            var zrList = clientObj.getZoneRuleList( zgObj.id );
+
+            console.log("Zone Rule List");
+            console.log(zrList);
+
+            Item += '<ul>';
+
+            for( index in zrList )
+            {
+                Item += '<li><p>'+ zrList[ index ].getRuleDisplayStr() + '</p></li>';
+            }
+
+            Item += '</ul>';
+            Item += '</div>';
+
+            Item += '</div>';
+ 
+/*
+
             // Add us into the main UI
             Item  = '<li class="' + delClassStr + '"><a href="#">';
             Item += '<h2>' + idStr + ": " + zgObj.name + '</h2>';
@@ -2480,7 +2509,7 @@ function ZoneGroupsUI( clientObj )
             }
 
             Item += '</tbody></table>';
-
+*/
             Item += '</a><a href="#" id="' + idStr + '" >Actions</a></li>';
 
             $( "#zgListview" ).append( Item ).trigger("create");
@@ -2738,6 +2767,36 @@ function TriggerGroupsUI( clientObj )
             // Get rid of any existing UI elements related to this item
             $('.' + delClassStr).remove();
 
+            // 
+            Item  = '<li class="' + delClassStr + '"><a href="#">';
+            Item += '<h3 class="ui-bar ui-bar-a">' + tgObj.name + '</h3>';
+            Item += '<div class="ui-body">';
+
+            Item += '<p>'+ tgObj.desc +'</p>';
+
+            Item += '<div class=\"rbox\">';
+            Item += '<h4>' + 'Trigger Conditions' + '</h4><hr/>';
+
+            var trList = clientObj.getTriggerRuleList( tgObj.id );
+
+            console.log("Trigger Rule List");
+            console.log(trList);
+
+            Item += '<ul>';
+
+            for( index in trList )
+            {
+                Item += '<li><p>'+ trList[ index ].getRuleDisplayStr() + '</p></li>';
+            }
+
+            Item += '</ul>';
+            Item += '</div>';
+
+            Item += '</div>';
+/*
+            // Get rid of any existing UI elements related to this item
+            $('.' + delClassStr).remove();
+
             // Add us into the main UI
             Item  = '<li class="' + delClassStr + '"><a href="#">';
             Item += '<h2>' + idStr + ": " + tgObj.name + '</h2>';
@@ -2756,7 +2815,7 @@ function TriggerGroupsUI( clientObj )
             }
 
             Item += '</tbody></table>';
-
+*/
             Item += '</a><a href="#" id="' + idStr + '" >Actions</a></li>';
 
             $( "#tgListview" ).append( Item ).trigger("create");
