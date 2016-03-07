@@ -33,12 +33,183 @@
             border: 5px solid gray;
             margin: 5px;
         }
+        div.hbox {
+            display: flex;
+            flex-direction: row;
+            justify-content: left;
+        }
+        div.tbox {
+            order: 1;
+            width: 30%;
+            float: left;
+            padding: 10px;
+            border: 5px solid gray;
+            margin: 5px;
+        }
+        div.ebox {
+            order: 2;
+            float: left;
+            width: 30%;
+            padding: 10px;
+            border: 5px solid gray;
+            margin: 5px;
+        }
+        div.eibox {
+            float: center;
+        }
+        div.mbox {
+            order: 3;
+            float: left;
+            width: 30%;
+            padding: 10px;
+            border: 5px solid gray;
+            margin: 5px;
+        }
+        div.cbox {
+            width: 94.5%;
+            padding: 10px;
+            border: 5px solid gray;
+            margin: 5px;
+        }
+
+        span.dzoffbox {
+            border: 1px solid gray;
+            padding: 2px;
+            margin: 2px;
+        }
+
+        span.dzonbox {
+            border: 2px solid black;
+            padding: 2px;
+            margin: 2px;
+        }
+
+        span.dzdisablebox {
+            border: 1px solid gray;
+            padding: 2px;
+            margin: 2px;
+        }
+
+        fieldset.dashfs { 
+            border: 5px gray solid;
+            padding: 10px;
+            margin: 5px; 
+        }
+
+        legend.dashfs {  
+            margin-left: 1em; 
+            padding: 0.2em 0.8em 
+        }
+
+        fieldset.dashfstl { 
+            border: 5px gray solid; 
+            order: 1;
+            width: 50%;
+            float: left;
+            padding: 2px; 
+            margin: 5px; 
+        }
+
+        fieldset.dashfstr { 
+            border: 5px gray solid; 
+            order: 2;
+            width: 50%;
+            float: right;
+            padding: 2px; 
+            margin: 5px; 
+        }
+
+/* Basic styles */
+.rwd-example .ui-body {
+    text-align: left;
+    border-color: #ddd;
+}
+.rwd-example p {
+    color: #777;
+    line-height: 140%
+}
+/* Stack all blocks to start */
+.rwd-example .ui-block-a,
+.rwd-example .ui-block-b,
+.rwd-example .ui-block-c {
+    width: 100%;
+    float: none;
+}
+/* Collapsing borders */
+.rwd-example > div + div .ui-body {
+    border-top-width: 0;
+}
+/* 1st breakpoint - Float B and C, leave A full width on top */
+@media all and (min-width: 42em) {
+    .rwd-example {
+        overflow: hidden; /* Use this or a "clearfix" to give the container height */
+    }
+    .rwd-example .ui-body {
+       min-height: 14em;
+    }
+    .rwd-example .ui-block-b,
+    .rwd-example .ui-block-c {
+      float: left;
+      width: 49.95%;
+    }
+    .rwd-example .ui-block-b p,
+    .rwd-example .ui-block-c p {
+      font-size: .8em;
+    }
+    .rwd-example > div + div .ui-body {
+        border-top-width: 1px;
+    }
+    .rwd-example > div:first-child .ui-body {
+        border-bottom-width: 0;
+    }
+    .rwd-example > div:last-child .ui-body {
+        border-left-width: 0;
+    }
+}
+/* 2nd breakpoint - Float all, 50/25/25 */
+@media all and (min-width: 55em) {
+    .rwd-example .ui-body {
+       min-height: 18em;
+    }
+    .rwd-example .ui-block-a,
+    .rwd-example .ui-block-c {
+      float: left;
+      width: 49.95%;
+    }
+    .rwd-example .ui-block-b,
+    .rwd-example .ui-block-c {
+      float: left;
+      width: 24.925%;
+    }
+    .rwd-example > div:first-child .ui-body {
+        border-bottom-width: 1px;
+    }
+    .rwd-example > div + div .ui-body {
+        border-left-width: 0;
+    }
+}
+/* 3rd breakpoint - Bump up font size at very wide screens */
+@media all and (min-width: 75em) {
+    .rwd-example .ui-body {
+      font-size: 125%;
+    }
+    .rwd-example .ui-block-a,
+    .rwd-example .ui-block-c {
+      float: left;
+      width: 49.95%;
+    }
+    .rwd-example .ui-block-b,
+    .rwd-example .ui-block-c {
+      float: left;
+      width: 24.925%;
+    }
+}
 
     </style>
 </head>
 <body>
 
-    <div data-role="page" id="irrigationui">
+    <div data-role="page" id="irrigationui" class="my-page">
  
         <div data-role="header">
             <h1>Irrigation Dashboard</h1>
@@ -47,18 +218,41 @@
         </div><!-- /header -->
  
         <div data-role="content">
-            <div class="ui-grid-a my-breakpoint" id="zone-content-grid">
-	            <div class="ui-block-a" id="zone-map-block">
-                    <div class="svg-container" id="zone-map-svg"></div>
+            <div class="hbox">
+                <fieldset class="dashfstl">
+                    <legend class="dashfs">Controller Time</legend>
+                    <p id="dash-ts"></p>
+                    <p id="dash-olsen"></p>
+                    <p id="dash-posix"></p>
+                </fieldset>
+                <fieldset class="dashfstr">
+                    <legend class="dashfs">Controls</legend>
+
+                    <label for="dash-master-enable" >Master Enable</label>
+                    <select name="dash-master-enable" id="dash-master-enable" data-role="slider">
+                        <option value="off">Off</option>
+                        <option value="on">On</option>
+                    </select>
+                    <label for="dash-skip-day" >Skip Today</label>
+                    <select name="dash-skip-day" id="dash-skip-day" data-role="slider">
+                        <option value="off">Off</option>
+                        <option value="on">On</option>
+                    </select>
+                </fieldset>
+             </div>
+             <fieldset class="dashfs">
+                <legend class="dashfs">Zone Status</legend>
+                <div id="dash-zone-status-list">
                 </div>
-	            <div class="ui-block-b">
-                    <form>
-                        <fieldset id="zone-radio-group" data-role="controlgroup">
-                            <legend>Zones:</legend>
-                        </fieldset>
-                    </form>
-                </div><!-- /grid-b -->
-            </div><!-- /zone-grid -->
+             </fieldset>
+             <fieldset class="dashfs">
+                <legend class="dashfs">Today's Schedule</legend>
+                <table id="dashboard-todays-schedule" class="display" width="100%"></table>
+             </fieldset>
+             <fieldset class="dashfs">
+                <legend class="dashfs">Today's Events</legend>
+                <table id="dashboard-todays-events" class="display" width="100%"></table>
+             </fieldset>
         </div><!-- /content -->
  
         <div data-role="footer">

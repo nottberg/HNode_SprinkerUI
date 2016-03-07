@@ -628,6 +628,20 @@ function CalendarEntry()
     this.endTime   = new Date();
 }
 
+// Hold the data for a zone state
+function ZoneStateEntry()
+{
+    this.id    = "";
+    this.name  = "";
+    this.state = "";
+}
+
+// Hold the data for the dashboard
+function DashboardData()
+{
+    this.timestamp = new Date();
+}
+
 // Create the base irrigation client object
 function IrrigationClient()
 {
@@ -1962,6 +1976,223 @@ function IrrigationClient()
         });
     }
 
+    this.getDashboard = function( dashboardCallback )
+    {
+        var url = 'proxy/dashboard/';
+
+        $.get( url, function( data, status ){
+            console.log( "get status: " + status );
+            console.log( "get data: " + data );
+
+            var logList = [];
+
+            if( $( data ).is( "irrigation-dashboard" ) == false )
+            {
+                return;
+            }
+
+            var dashObj = new DashboardData();
+
+            // Parse child elements
+            $( data ).children().each( function( index )
+            {
+                switch( $(this).prop( "nodeName" ).toLowerCase() )
+                {
+                    case 'timestamp':
+                        var refTime = $(this).text();
+
+                        var expTime = refTime.substring(0, 4) + "-" + refTime.substring(4, 6) + "-" + refTime.substring(6,8);
+                        expTime += "T";
+                        expTime += refTime.substring(9, 11) + ":" + refTime.substring(11, 13) + ":" + refTime.substring(13, 15);
+
+                        dashObj.timestamp = new Date( Date.parse( expTime ) );
+                    break;
+
+                    case 'timezone':
+                        dashObj.olsenTimezone = $(this).text();
+                    break;
+
+                    case 'posix-timezone':
+                        dashObj.posixTimezone = $(this).text();
+                    break;
+
+                    case 'master-enable':
+                        if( $(this).text() == "true" )
+                            dashObj.masterEnable = true;
+                        else
+                            dashObj.masterEnable = false;
+                    break;
+
+                    case 'active-zones':
+                    break;
+
+                    case 'todays-schedule':
+                    {
+                        dashObj.schList = [];
+
+                        $( data ).find('event').each( function( index ){
+
+                            var entry = new CalendarEntry();
+
+                            // Parse child elements
+                            $( this ).children().each( function( index )
+                            {
+                                switch( $(this).prop( "nodeName" ).toLowerCase() )
+                                {
+                                    case 'id':
+                                        entry.id = $(this).text();
+                                    break;
+
+                                    case 'erid':
+                                        entry.erID = $(this).text();
+                                    break;
+
+                                    case 'tgid':
+                                        entry.tgID = $(this).text();
+                                    break;
+
+                                    case 'trid':
+                                        entry.trID = $(this).text();
+                                    break;
+
+                                    case 'zgid':
+                                        entry.zgID = $(this).text();
+                                    break;
+
+                                    case 'zrid':
+                                        entry.zrID = $(this).text();
+                                    break;
+
+                                    case 'trigger-name':
+                                        entry.tgName = $(this).text();
+                                    break;
+
+                                    case 'zone-name':
+                                        entry.zoneName = $(this).text();
+                                    break;
+
+                                    case 'duration':
+                                        entry.duration = $(this).text();
+                                    break;
+
+                                    case 'start-time':
+                                        var refTime = $(this).text();
+
+                                        var expTime = refTime.substring(0, 4) + "-" + refTime.substring(4, 6) + "-" + refTime.substring(6,8);
+                                        expTime += "T";
+                                        expTime += refTime.substring(9, 11) + ":" + refTime.substring(11, 13) + ":" + refTime.substring(13, 15);
+
+                                        entry.startTime = new Date( Date.parse( expTime ) );
+                                    break;
+
+                                    case 'end-time':
+                                        var refTime = $(this).text();
+
+                                        var expTime = refTime.substring(0, 4) + "-" + refTime.substring(4, 6) + "-" + refTime.substring(6,8);
+                                        expTime += "T";
+                                        expTime += refTime.substring(9, 11) + ":" + refTime.substring(11, 13) + ":" + refTime.substring(13, 15);
+
+                                        entry.endTime = new Date( Date.parse( expTime ) );
+                                    break;
+                                }    
+
+                            });
+
+                            dashObj.schList.push( entry );
+
+                        });
+                    }
+                    break;
+
+                    case 'todays-events':
+                    {
+                        dashObj.teventList = [];
+
+                        $( data ).find('log-entry').each( function( index ){
+
+                            var entry = new PastScheduleLogEntry();
+
+                            // Parse child elements
+                            $( this ).children().each( function( index )
+                            {
+
+                                switch( $(this).prop( "nodeName" ).toLowerCase() )
+                                {
+                                    case 'event-id':
+                                        entry.id = $(this).text();
+                                    break;
+
+                                    case 'event-msg':
+                                        entry.msg = $(this).text();
+                                    break;
+
+                                    case 'seqnum':
+                                        entry.seqnum = parseInt( $(this).text() );
+                                    break;
+
+                                    case 'timestamp':
+                                        var refTime = $(this).text();
+
+                                        var expTime = refTime.substring(0, 4) + "-" + refTime.substring(4, 6) + "-" + refTime.substring(6,8);
+                                        expTime += "T";
+                                        expTime += refTime.substring(9, 11) + ":" + refTime.substring(11, 13) + ":" + refTime.substring(13, 15);
+
+                                        entry.tstamp = new Date( Date.parse( expTime ) );
+                                    break;
+                                }
+                            });
+
+                            console.log( entry );
+
+                            dashObj.teventList.push( entry );
+                        });
+                    }
+                    break;
+
+                    case 'zone-states':
+                    {
+                        dashObj.zoneList = [];
+
+                        $( data ).find('zone').each( function( index ){
+
+                            var entry = new ZoneStateEntry();
+
+                            // Parse child elements
+                            $( this ).children().each( function( index )
+                            {
+
+                                switch( $(this).prop( "nodeName" ).toLowerCase() )
+                                {
+                                    case 'id':
+                                        entry.id = $(this).text();
+                                    break;
+
+                                    case 'name':
+                                        entry.name = $(this).text();
+                                    break;
+
+                                    case 'state':
+                                        entry.state = $(this).text();
+                                    break;
+                                }
+                            });
+
+                            console.log( entry );
+
+                            dashObj.zoneList.push( entry );
+                        });
+
+                    }
+                    break;
+                }
+
+            });
+
+            // Make a callback with the list
+            dashboardCallback( dashObj );
+        });
+    }
+
     this.debugPrint = function()
     {
         var debugStr = "Hi";
@@ -2965,6 +3196,129 @@ function FutureScheduleUI( clientObj )
 
 }
 
+// The schedule dashboard display UI
+function DashboardUI( clientObj )
+{
+    this.clientObj = clientObj;
+/*
+    this.radioChange = function()
+    {
+        console.log("radioChange");
+
+        var changeFlag = false;
+        var newPeriod  = this.curPeriod;
+
+        $( "#schedule-period-radio-group" ).find( 'input' ).each( function( index ){
+
+            if( $(this)[0].checked == true )
+            {
+                if( $(this).attr('schvalue' ) != newPeriod )
+                {
+                    newPeriod = $(this).attr('schvalue' );
+                    changeFlag = true;
+                    console.log( "Change Period: " + newPeriod );
+                }
+            }
+        });
+
+        if( changeFlag == true )
+        {
+            this.curPeriod = newPeriod;
+            var updateCB = this.calendarUpdateCallback.bind(this);
+            this.clientObj.getCalendar( this.curPeriod, updateCB );
+        }
+    }
+*/
+    this.onetimeInit = function()
+    {
+        $( "#dashboard-todays-schedule" ).DataTable( { columns: [ {title: "Start Time"}, {title: "Zone"}, {title: "Duration"} ], "paging": false, "ordering": false, "info": false, "searching": false });
+        $( "#dashboard-todays-events" ).DataTable( { columns: [ {title: "Time"}, {title: "Event"} ], "paging": false, "ordering": false, "info": false, "searching": false });
+    }
+
+    this.initEventHandlers = function()
+    {
+    }
+
+    this.dashboardUpdateCallback = function( dashboardData )
+    {
+        console.log( "Dashboard" );
+        console.log( dashboardData );
+
+        $( "#dash-ts" ).text( dashboardData.timestamp );
+        $( "#dash-olsen" ).text( dashboardData.olsenTimezone );
+        $( "#dash-posix" ).text( dashboardData.posixTimezone );
+
+        if( dashboardData.masterEnable == true )
+            $( "#dash-master-enable" ).val( "on" ).slider("refresh");
+        else
+            $( "#dash-master-enable" ).val( "off" ).slider("refresh");
+
+        // Zone Status
+        // Clear any existing data
+        $( "#dash-zone-status-list" ).empty();
+
+        for( var i = 0; i < dashboardData.zoneList.length; i++ )
+        {
+              var dclass = "dzoffbox";
+              if( dashboardData.zoneList[i].state == "on" )
+                 dclass = "dzonbox";
+
+              Item = '<span class="' + dclass + '">';
+              Item += dashboardData.zoneList[i].name;
+              Item += '</span>';
+
+              $( "#dash-zone-status-list" ).append( Item );
+        }
+
+        // Todays Schedule        
+        var dataSet = [];
+
+        for( var i = 0; i < dashboardData.schList.length; i++ )
+        {
+              dataSet.push( [ dashboardData.schList[i].startTime, dashboardData.schList[i].zoneName, dashboardData.schList[i].duration ] );
+        }
+
+        var table = $( "#dashboard-todays-schedule" ).DataTable();
+        table.clear();
+        table.rows.add(dataSet);
+        table.columns.adjust().draw();
+
+        // Todays Events        
+        var dataSet = [];
+
+        for( var i = 0; i < dashboardData.teventList.length; i++ )
+        {
+              dataSet.push( [ dashboardData.teventList[i].tstamp, dashboardData.teventList[i].msg ] );
+        }
+
+        var table = $( "#dashboard-todays-events" ).DataTable();
+        table.clear();
+        table.rows.add(dataSet);
+        table.columns.adjust().draw();
+
+/*
+        var dataSet = [];
+
+        for( var i = 0; i < logList.length; i++ )
+        {
+            dataSet.push( [ logList[i].startTime, logList[i].endTime, logList[i].zoneName, logList[i].duration ] );
+        }
+
+        var table = $( "#future-schedule-entry-table" ).DataTable();
+        table.clear();
+        table.rows.add(dataSet);
+        table.columns.adjust().draw();
+*/
+    }
+
+    this.refreshAll = function()
+    {
+        var updateCB = this.dashboardUpdateCallback.bind(this);
+        this.clientObj.getDashboard( updateCB );
+    }
+
+}
+
 // Create all of the management objects
 irrClient = new IrrigationClient();
 
@@ -2973,6 +3327,7 @@ ZGUI = new ZoneGroupsUI( irrClient );
 TGUI = new TriggerGroupsUI( irrClient );
 PSUI = new PastScheduleUI( irrClient );
 FSUI = new FutureScheduleUI( irrClient );
+DBUI = new DashboardUI( irrClient );
 
     function parseHNodeDetail( data, status ){
         if( status != 'success' )
@@ -3883,16 +4238,18 @@ FSUI = new FutureScheduleUI( irrClient );
         getZoneList();
     });
 
+    $( document ).on( "pageinit", "#irrigationui", function( event ) 
+    {
+        console.log("pageinit irrigationui");
+
+        DBUI.onetimeInit();
+    });
+
     $( document ).on( "pageshow", "#irrigationui", function( event ) 
     {
         console.log("pageshow irrigationui");
 
-        irrClient.updateZoneDefinitions();
-
-        //irui_getZoneList();
-
-        //irui_getZoneMap();
-
+        DBUI.refreshAll();
     });
 
     $( document ).on( "pageshow", "#valveui", function( event ) 
@@ -3910,13 +4267,6 @@ FSUI = new FutureScheduleUI( irrClient );
         FSUI.onetimeInit();
     });
 
-    $( document ).on( "pageinit", "#logui", function( event ) 
-    {
-        console.log("pageinit logui");
-
-        PSUI.onetimeInit();
-    });
-
     $( document ).on( "pageshow", "#scheduleui", function( event ) 
     {
         console.log("pageshow scheduleui");
@@ -3924,6 +4274,13 @@ FSUI = new FutureScheduleUI( irrClient );
         FSUI.initEventHandlers();
 
         FSUI.refreshAll();
+    });
+
+    $( document ).on( "pageinit", "#logui", function( event ) 
+    {
+        console.log("pageinit logui");
+
+        PSUI.onetimeInit();
     });
 
     $( document ).on( "pageshow", "#logui", function( event ) 
