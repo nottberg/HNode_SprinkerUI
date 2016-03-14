@@ -1229,6 +1229,58 @@ function IrrigationClient()
         });
     }
 
+    this.updateScheduleRuleEnable = function( srID, enable )
+    {
+        var putData = '<schedule-event-rule>';
+        if( enable == true )
+        {
+            putData += '<enabled>true</enabled>';
+        }
+        else
+        {
+            putData += '<enabled>false</enabled>';
+        }
+        putData += '</schedule-event-rule>';
+
+        var putURL = 'proxy/schedule/rules/' + srID;
+
+        var completeCallback = this.updateScheduleRules.bind(this);
+
+        console.log( 'Ajax put: ' + putData );
+
+        // Send data to server through the Ajax call
+        // action is functionality we want to call and outputJSON is our data
+        $.ajax({url: putURL,
+                data: putData,
+                type: 'put',                   
+                async: 'true',
+                contentType: 'application/xml',
+                dataType: 'xml',
+                beforeSend: function()
+                {
+                    // This callback function will trigger before data is sent
+                    $.mobile.loading( 'show' );
+                },
+                complete: function() 
+                {
+                    // This callback function will trigger on data sent/received complete
+                    $.mobile.loading( 'hide' ); // This will hide ajax spinner
+                },
+                success: function( data, textStatus, jqXHR ) 
+                {
+                    console.log( "Put Done: " + textStatus );
+                    console.log( jqXHR.getAllResponseHeaders() );
+
+                    completeCallback();                         
+                },
+                error: function( request, error ) 
+                {
+                    // This callback function will trigger on unsuccessful action                
+                    alert('Network error has occurred please try again!');
+                }
+        });
+    }
+
     this.updateScheduleRuleZoneGroup = function( srID, zgID )
     {
         var putData = '<schedule-event-rule>';
@@ -2241,6 +2293,18 @@ function ScheduleRuleUI( clientObj )
         this.clientObj.updateScheduleRuleDesc( srID, desc );
     }
 
+    this.SRACB_EnableChangeCB = function( )
+    {
+        console.log( "SRACB_EnableChangeCB" );
+
+        var srID = $( "#srActionName" ).attr("srid");
+        var enable = $( "#srenable" ).prop("checked");
+
+        console.log( "sr: " + srID + "  enable: " + enable );
+
+        this.clientObj.updateScheduleRuleEnable( srID, enable );
+    }
+
     this.SRACB_ZoneGroupChangeCB = function( )
     {
         console.log( "SRACB_ZoneGroupChangeCB" );
@@ -2275,6 +2339,9 @@ function ScheduleRuleUI( clientObj )
         // Set the text fields
         $( "#srun" ).val( srObj.name );
         $( "#srud" ).val( srObj.desc );
+
+        // Set the enabled checkbox
+        $( "#srenable" ).prop( 'checked', srObj.enabled ).checkboxradio('refresh');
 
         // Clear any old rule records
         $( "#srZoneGroupSelect" ).empty();
@@ -2362,6 +2429,10 @@ function ScheduleRuleUI( clientObj )
         $( "#srud" ).off( "blur" );
         var srDescBlurCB = this.SRACB_DescBlurCB.bind(this);
         $( "#srud" ).on( "blur", srDescBlurCB );
+
+        $( "#srenable" ).off( "change" );
+        var srEnableChangeCB = this.SRACB_EnableChangeCB.bind(this);
+        $( "#srenable" ).on( "change", srEnableChangeCB );
 
         $( "#srZoneGroupSelect" ).off( 'change' );
         var srZGChangeCB = this.SRACB_ZoneGroupChangeCB.bind(this);
